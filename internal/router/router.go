@@ -1,10 +1,10 @@
 package router
 
-import {
+import (
 	"fmt"
 
 	"llm-gateway/internal/providers"
-}
+)
 
 // Router holds every registered provider and knows how to pick one
 // by name. Intitially this component will be dumb and wont have any failover
