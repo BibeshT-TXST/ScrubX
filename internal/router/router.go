@@ -3,7 +3,7 @@ package router
 import (
 	"fmt"
 
-	"llm-gateway/internal/providers"
+	"../../internal/providers"
 )
 
 // Router holds every registered provider and knows how to pick one
