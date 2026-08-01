@@ -16,15 +16,15 @@ type Router struct {
 	defaultName string
 }
 
-// New builds a router from a list of providers. The first provider in 
-// the list becomes the default. The list must not me empty or have duplicate 
+// New builds a router from a list of providers. The first provider in
+// the list becomes the default. The list must not me empty or have duplicate
 // names [ NOT WORKING ON THIS ISSUE RIGHT NOW]
 // ...providers.Provider -> [variadic parameter]
 // ... basically means pass as many parameters you want separtaed by a comma
-// provs acts like an array that strores all the parameters and is used 
+// provs acts like an array that strores all the parameters and is used
 // within the function as a common identifier to access all the parameter values
 func New(provs ...providers.Provider) *Router {
-	if len(provs) == 0{
+	if len(provs) == 0 {
 		panic("router: at least one provider is required")
 	}
 
@@ -35,9 +35,9 @@ func New(provs ...providers.Provider) *Router {
 		// _ discards actual map value
 		// Gos map look up returns two value at once
 		//  value  ,  exists  :=  m[name]
-     	//	│          │
-     	//	│          └─► Gets 2nd output: bool (true/false){ usually uzed for conditions}
-     	//	└────────────► Gets 1st output: actual data/ value
+		//	│          │
+		//	│          └─► Gets 2nd output: bool (true/false){ usually uzed for conditions}
+		//	└────────────► Gets 1st output: actual data/ value
 		if _, exists := m[name]; exists {
 			panic(fmt.Sprintf("router: duplicate provider name %q", name))
 		}
@@ -45,14 +45,14 @@ func New(provs ...providers.Provider) *Router {
 	}
 
 	return &Router{
-		providers: 		m,
-		defaultName:	provs[0].Name(),
+		providers:   m,
+		defaultName: provs[0].Name(),
 	}
 }
 
-// Route returns the provider registered under name 
+// Route returns the provider registered under name
 // passing an empty string returns the default provider
-func ( r *Router ) Route(name string) (providers.Provider, error){
+func (r *Router) Route(name string) (providers.Provider, error) {
 	if name == "" {
 		name = r.defaultName
 	}
@@ -65,10 +65,10 @@ func ( r *Router ) Route(name string) (providers.Provider, error){
 	return p, nil
 }
 
-//Names returns every rigeisterd provider name, mainlu useful for a healthcheck endpoint
+// Names returns every rigeisterd provider name, mainlu useful for a healthcheck endpoint
 func (r *Router) Names() []string {
 	names := make([]string, 0, len(r.providers))
-	for name: = range r.providers {
+	for name := range r.providers {
 		names = append(names, name)
 	}
 	return names
