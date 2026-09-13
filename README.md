@@ -1,2 +1,2 @@
-# LLM-Gateway
-A self hosted LLM gateway in GO. It provides routing, redaction, failover, audit logging and caching.
+# ScrubX
+ScrubX is a security gateway that sits between a clinical app and an LLM. A doctor's question passes through it, sensitive patient details get swapped for tokens before anything reaches the model, and the real values get swapped back into the answer on the way out. Every request leaves an audit trail, and risky ones never make it past the gate. I am building so i can simulate how hospitals can use an LLM without sending patient data anywhere it shouldn't go.
