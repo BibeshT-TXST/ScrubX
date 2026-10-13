@@ -206,7 +206,13 @@ export function ChatPanel({ patient, modelConnected, className }: Props) {
             className="max-h-48 min-h-11 resize-none text-body md:text-body"
             maxLength={4000}
           />
-          <Button type="submit" size="lg" disabled={busy || !draft.trim()}>
+          {/* Disabled reads as muted but stays legible; the default fades the black button into an unreadable grey block. */}
+          <Button
+            type="submit"
+            size="lg"
+            disabled={busy || !draft.trim()}
+            className="min-w-28 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:border-border disabled:bg-background disabled:text-muted-foreground disabled:opacity-100"
+          >
             {busy ? <Loader2 className="animate-spin" /> : <SendHorizontal />}
             {busy ? "Waiting" : "Send"}
           </Button>
