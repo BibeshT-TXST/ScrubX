@@ -4,7 +4,7 @@
 
 ScrubX takes a clinician's question and the patient's record, removes everything that identifies the patient, stops prompt-injection attempts, and sends the model only tokenized text. It then checks the answer and puts the real names back before the clinician reads it. Every step leaves a trace you can inspect.
 
-We built ScrubX as a module of **[SightX](https://github.com/BibeshT-TXST/SightX)**, our diabetic retinopathy screening system. It also runs on its own, which is how this repo runs it. [How it fits into SightX](#how-it-fits-into-sightx) comes after what it does.
+ScrubX is built as a module of **[SightX](https://github.com/BibeshT-TXST/SightX)**, the diabetic retinopathy screening system. It also runs on its own, which is how this repo runs it. [How it fits into SightX](#how-it-fits-into-sightx) comes after what it does.
 
 **Try it live: [scrub-x-ivory.vercel.app](https://scrub-x-ivory.vercel.app)**. No sign-up, and every patient is fictional. [A five-minute tour](#try-it) follows.
 
