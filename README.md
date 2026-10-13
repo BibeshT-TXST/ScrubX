@@ -90,5 +90,8 @@ The pipeline core is plain TypeScript with no framework, so the Express gateway 
 
 ## Learn more
 
-- **[Run ScrubX on its own](docs/running-scrubx.md):** local setup, Supabase, Vercel, configuration and the API.
-- **[Decisions](docs/decisions/):** why ScrubX is built the way it is, each with the files it lives in and a real example.
+- **[Run ScrubX](docs/running-scrubx.md):** local setup, Supabase, Vercel, configuration and the API.
+- **[Decisions](docs/decisions/):** why ScrubX is built the way it is, each decisions with an example.
+
+---
+**Built with care to serve people**
