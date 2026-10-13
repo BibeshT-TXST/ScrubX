@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const { llm } = scrubx().config;
-  const model = llm.provider === "mock" ? "mock model" : `${llm.provider} · ${llm.model ?? GEMINI_DEFAULT_MODEL}`;
+  const model = llm.apiKey ? `gemini · ${llm.model ?? GEMINI_DEFAULT_MODEL}` : null;
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex h-dvh flex-col overflow-hidden">

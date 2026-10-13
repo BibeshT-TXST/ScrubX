@@ -1,10 +1,11 @@
 import { findingsToLabels, resolveLabels } from "@/core/phi/labels";
 import type { StageName, StageSpan, Step } from "@/core/pipeline/events";
+import { MODEL_UNAVAILABLE } from "@/core/providers/LLMProvider";
 import { QUARANTINED } from "@/core/providers/prompt";
 import { REDACTED, TOKEN_PATTERN } from "@/core/tokens/tokenize";
 import type { Decision, PhiLabel, Span } from "@/core/types";
 
-// Pure helpers that turn a trace into what the Dev View draws. No React here.
+// Pure helpers that turn a trace into what the Security Division draws. No React here.
 
 export type SegmentKind =
   | "plain"
@@ -169,13 +170,17 @@ export function stepBody(step: Step, spans: readonly StageSpan[]): StepBody {
     }
     case "model": {
       const llm = get("LlmStage");
+      if (llm?.status === "error") {
+        return { label: "model answer", muted: true, segments: [{ text: `No answer: ${llm.error ?? "the model could not be reached"}`, kind: "plain" }] };
+      }
       return llm?.status === "skipped" ? refusal("model answer") : body(llm, llm?.output?.text, tokenMarks, "model answer");
     }
     case "restore": {
       if (block) return refusal("answer to clinician", false);
+      const label = "answer to clinician";
+      if (get("LlmStage")?.status === "error") return { label, segments: [{ text: MODEL_UNAVAILABLE, kind: "plain" }] };
       const output = get("OutputAnalysis");
       const text = output?.output?.text;
-      const label = "answer to clinician";
       if (!get("Rehydrator")) return { label, segments: [], empty: WAITING };
       if (text === undefined) return { label, segments: [], empty: PAYLOADS_OFF };
       return { label, segments: restoreSegments(text, tokenMap(spans)) };

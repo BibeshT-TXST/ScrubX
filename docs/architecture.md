@@ -32,7 +32,9 @@ Receive ─► InputNormalizer ─┬─► RegexRules ────┐
 | 4 Decide | `RiskEngine`, `Block` | `score = max(semantic, noisy-OR of distinct rules)`; any critical rule blocks. Thresholds come from config. PHI is never risk on its own. |
 | 5 Tokenize | `Tokenizer` | Typed, numbered tokens (`[PATIENT_1]`, `[DATE_2]`) from a request-scoped vault. Same value, same token. |
 | 6 Model | `Retrieval`, `LlmStage`, `OutputAnalysis` | Role-filtered record and client-held history are sanitized like the message (normalize, quarantine instructions, tokenize with the same vault), then sent to the model. The answer is checked: mangled tokens repaired, unknown tokens stripped, raw PHI redacted, ungrounded numbers and medications flagged. |
-| 7 Restore | `Rehydrator`, `AuditLogger` | Known tokens swapped back to real values. One PHI-free JSON audit line per request, blocked ones included. |
+| 7 Restore | `Rehydrator`, `AuditLogger` | Known tokens swapped back to real values. One PHI-free JSON audit line per request, blocked and unanswered ones included. |
+
+If the model can't be reached (no key, outage, timeout after retries), the LLM span records the error, output analysis and restoration are skipped, and the request ends with the `unavailable` outcome: audited, and shown to the clinician as "we couldn't connect".
 
 ## Code layout
 
@@ -43,14 +45,14 @@ src/core/      framework-free pipeline: no next/react, relative imports only (ES
   text/ rules/ phi/ injection/ tokens/ providers/ data/
 src/server/    server-only wiring: env → config → repository + provider + Pipeline
 src/lib/       NDJSON helpers, pipeline client, in-memory store, trace-view (pure view logic)
-src/app/       Chat View (/), Dev View (/dev), API routes
+src/app/       Chat (/), Security Division (/security), API routes
 ```
 
 Every stage extends `Stage<I, O>` and implements `process()`. Timing, snapshots, span creation and error capture live in `Stage.run()`. Adding a stage takes one class and one line in `Pipeline`.
 
 ## Trust boundaries and PHI handling
 
-- **Host → ScrubX:** the host authenticates the user and vouches for `role`. ScrubX uses `role` for one thing, the field policy in Retrieval. Unknown roles get only the fields every known role shares.
+- **Host → ScrubX:** the host authenticates the user and vouches for `role`. ScrubX uses `role` for one thing, the field policy in Retrieval. There is one role, `medical_practitioner` (every clinical field, never the address). Unknown roles get name and date of birth only.
 - **Browser → API:** the client sends a `patientId`, never a record. Records are loaded server-side through `PatientRepository`.
 - **ScrubX → LLM:** only tokenized text leaves. The record and history are untrusted input too (indirect injection), so they get the same sanitization as the message. A test asserts no record or vault value appears in any prompt, across every demo patient and every adversarial case.
 - **LLM → clinician:** the answer is analyzed while still tokenized. Raw PHI there can only be invented or leaked, so it is redacted before restoration.
@@ -71,7 +73,7 @@ Pages load only the summary list. A full record is fetched by ID when needed, an
 
 1. **In-app trace:** OpenTelemetry-shaped spans (`spanId`, `parentSpanId`, timings, attributes). The three detectors share the normalizer as parent.
 2. **Structured log:** one `scrubx.audit` JSON line per request on stdout (Vercel logs). Failures log `scrubx.error` with the request ID; the client only gets a generic message.
-3. **Dev View:** stage card with playback gated by real stream events, pipeline graph, inspector with diffs, data lens, risk breakdown, audit line with an in-browser PHI check, timing waterfall, PHI mask.
+3. **Security Division:** read-only. Patient tabs and each patient's chat log, then for the selected request: a stage card with playback gated by real stream events, the pipeline graph, an inspector with diffs, a risk breakdown, the audit line with an in-browser PHI check, a timing waterfall, and a PHI mask.
 
 ## Configuration
 
@@ -79,11 +81,9 @@ All variables are optional; the demo runs with none. See `.env.example`.
 
 | Variable | Default | Notes |
 |---|---|---|
-| `LLM_PROVIDER` | `mock` | `mock` or `gemini` |
-| `GEMINI_API_KEY` | | Required for `gemini`; server-side only, sent as a header |
+| `GEMINI_API_KEY` | | The model's key; server-side only, sent as a header. Without it every chat is "couldn't connect" |
 | `LLM_MODEL` | `gemini-3.8-flash` | |
 | `LLM_FALLBACK_MODEL` | `gemini-3.5-flash-lite` | Used for the last retry; `none` disables |
-| `MOCK_LATENCY_MS` | `500` | Makes the streamed trace visible with the mock |
 | `PATIENT_SOURCE` | `demo` | `demo` (bundled synthetic JSON) or `supabase` |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | | Required for `supabase`; server-side only |
 | `SCRUBX_TRACE_PAYLOADS` | on for `demo`, off otherwise | An explicit value always wins |

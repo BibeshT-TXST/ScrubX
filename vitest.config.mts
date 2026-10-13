@@ -13,7 +13,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
-    env: { MOCK_LATENCY_MS: "0", SCRUBX_TRACE_PAYLOADS: "true" },
+    env: { SCRUBX_TRACE_PAYLOADS: "true" },
     coverage: { include: ["src/core/**", "src/lib/**", "src/server/**", "src/app/api/**"] },
   },
 });

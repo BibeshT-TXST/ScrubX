@@ -1,15 +1,17 @@
 "use client";
 
+import { WifiOff } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/", label: "Chat" },
-  { href: "/dev", label: "Dev View" },
+  { href: "/security", label: "Security Division" },
 ];
 
-export function SiteHeader({ model }: { model: string }) {
+/** `model` is null when no model is configured: every chat will report it couldn't connect. */
+export function SiteHeader({ model }: { model: string | null }) {
   const pathname = usePathname();
   return (
     <header className="flex items-center gap-6 border-b px-6 py-3">
@@ -30,7 +32,14 @@ export function SiteHeader({ model }: { model: string }) {
           </Link>
         ))}
       </nav>
-      <span className="ml-auto font-mono text-[11px] text-muted-foreground">synthetic demo data · {model}</span>
+      <span className="ml-auto flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
+        synthetic demo data ·{" "}
+        {model ?? (
+          <span className="flex items-center gap-1 rounded-md border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-zinc-700">
+            <WifiOff className="size-3" /> no model connected
+          </span>
+        )}
+      </span>
     </header>
   );
 }

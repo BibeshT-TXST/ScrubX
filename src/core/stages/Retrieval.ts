@@ -10,16 +10,14 @@ import { tokenizeText } from "../tokens/tokenize";
 import { KNOWN_ROLES, type ChatTurn, type PatientContext, type PatientFieldKey, type Role } from "../types";
 import { plural } from "./format";
 
+// Address is never sent: it isn't needed to answer clinical questions.
 export const FIELD_POLICY: Record<Role, readonly PatientFieldKey[]> = {
-  physician: ["name", "dob", "mrn", "conditions", "medications", "description"],
-  nurse: ["name", "dob", "conditions", "medications", "description"],
-  front_desk: ["name", "dob", "phone"],
+  medical_practitioner: ["name", "dob", "mrn", "phone", "conditions", "medications", "description"],
 };
 
-// Unknown roles get only what every known role may see: least privilege, never the most open policy.
-export const RESTRICTED_FIELDS: readonly PatientFieldKey[] = FIELD_POLICY.physician.filter((f) =>
-  KNOWN_ROLES.every((r) => FIELD_POLICY[r].includes(f)),
-);
+// Unknown roles get identification only. Pinned explicitly: with a single known role,
+// "what every role shares" would be everything, the opposite of least privilege.
+export const RESTRICTED_FIELDS: readonly PatientFieldKey[] = ["name", "dob"];
 
 export function fieldsForRole(role: string): readonly PatientFieldKey[] {
   return (KNOWN_ROLES as readonly string[]).includes(role) ? FIELD_POLICY[role as Role] : RESTRICTED_FIELDS;

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { ChatView } from "@/components/chat/ChatView";
 import { scrubx } from "@/server/scrubx";
 
-// Chat View. Only the patient list is loaded here; the selected record comes from
+// Chat. Only the patient list is loaded here; the selected record comes from
 // /api/patients/[id] on demand, and the browser only ever sends a patientId back.
 export default function Home() {
   return (
@@ -15,5 +15,6 @@ export default function Home() {
 }
 
 async function Chat() {
-  return <ChatView patients={await scrubx().patients.list()} />;
+  const { patients, config } = scrubx();
+  return <ChatView patients={await patients.list()} modelConnected={!!config.llm.apiKey} />;
 }

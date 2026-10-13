@@ -5,9 +5,9 @@ import { DEFAULT_ENTITY_POLICY } from "@/core/tokens/tokenize";
 const SUPABASE = { PATIENT_SOURCE: "supabase", SUPABASE_URL: "https://abc.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "k" };
 
 describe("loadConfig", () => {
-  it("defaults to a keyless mock demo; payloads are on only because the data is synthetic", () => {
+  it("defaults to the demo data with no model key; payloads are on only because the data is synthetic", () => {
     expect(loadConfig({})).toEqual({
-      llm: { provider: "mock", model: undefined, fallbackModel: undefined, apiKey: undefined, mockLatencyMs: 500 },
+      llm: { apiKey: undefined, model: undefined, fallbackModel: undefined },
       patientSource: "demo",
       tracePayloads: true,
       risk: { blockThreshold: 0.8, flagThreshold: 0.4 },
@@ -16,8 +16,8 @@ describe("loadConfig", () => {
   });
 
   it("treats empty strings as unset", () => {
-    const cfg = loadConfig({ LLM_PROVIDER: "", RISK_BLOCK_THRESHOLD: "", SCRUBX_TRACE_PAYLOADS: "" });
-    expect(cfg.llm.provider).toBe("mock");
+    const cfg = loadConfig({ GEMINI_API_KEY: "", RISK_BLOCK_THRESHOLD: "", SCRUBX_TRACE_PAYLOADS: "" });
+    expect(cfg.llm.apiKey).toBeUndefined();
     expect(cfg.risk.blockThreshold).toBe(0.8);
     expect(cfg.tracePayloads).toBe(true);
   });
@@ -56,13 +56,9 @@ describe("loadConfig", () => {
     expect(() => loadConfig({ RISK_BLOCK_THRESHOLD: "high" })).toThrow();
   });
 
-  it("requires an API key for the real provider", () => {
-    expect(() => loadConfig({ LLM_PROVIDER: "gemini" })).toThrow(/GEMINI_API_KEY/);
-    expect(loadConfig({ LLM_PROVIDER: "gemini", GEMINI_API_KEY: "k", LLM_MODEL: "m" }).llm).toMatchObject({
-      provider: "gemini",
-      apiKey: "k",
-      model: "m",
-    });
+  it("reads the Gemini settings; a missing key is allowed (chats report they couldn't connect)", () => {
+    expect(() => loadConfig({})).not.toThrow();
+    expect(loadConfig({ GEMINI_API_KEY: "k", LLM_MODEL: "m" }).llm).toMatchObject({ apiKey: "k", model: "m" });
     expect(loadConfig({ LLM_FALLBACK_MODEL: "none" }).llm.fallbackModel).toBeNull();
     expect(loadConfig({ LLM_FALLBACK_MODEL: "gemini-x" }).llm.fallbackModel).toBe("gemini-x");
   });

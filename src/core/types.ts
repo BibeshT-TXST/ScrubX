@@ -3,8 +3,11 @@ import type { Trace } from "./pipeline/events";
 
 export type { ChatTurn, PatientContext, PatientFields, PipelineRequest };
 
-export const KNOWN_ROLES = ["physician", "nurse", "front_desk"] as const;
+// One clinical role covers every practitioner (physicians, nurses, front desk).
+// The host still passes `role`, so more roles can be added in Retrieval's field policy.
+export const KNOWN_ROLES = ["medical_practitioner"] as const;
 export type Role = (typeof KNOWN_ROLES)[number];
+export const DEFAULT_ROLE: Role = "medical_practitioner";
 
 // Field names Retrieval can release: structured fields plus the free-text description.
 export type PatientFieldKey = keyof PatientFields | "description";
@@ -72,7 +75,7 @@ export interface AuditEvent {
   requestId: string;
   role: string;
   timestamp: string;
-  outcome: "answered" | "blocked";
+  outcome: PipelineOutcome;
   decision: DecisionAction;
   score: number;
   ruleIds: string[];
@@ -85,9 +88,12 @@ export interface AuditEvent {
   provider: string | null;
 }
 
+/** "unavailable": the request passed every check but the model could not be reached. */
+export type PipelineOutcome = "answered" | "blocked" | "unavailable";
+
 export interface PipelineResult {
   requestId: string;
-  outcome: "answered" | "blocked";
+  outcome: PipelineOutcome;
   response: string;
   trace: Trace;
   audit: AuditEvent;

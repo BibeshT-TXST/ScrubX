@@ -13,3 +13,4 @@ One file per decision: the context, what was decided, and what it costs. New dec
 | [0007](0007-patient-resolved-server-side.md) | Patients are resolved server-side; the core never fetches |
 | [0008](0008-gemini-over-rest.md) | Gemini over REST with retries and a fallback model |
 | [0009](0009-supabase-over-postgrest.md) | Supabase over PostgREST, read-only, deny-all RLS |
+| [0010](0010-single-role-real-model-observation-only.md) | One role, always a real model, observation-only Security Division |

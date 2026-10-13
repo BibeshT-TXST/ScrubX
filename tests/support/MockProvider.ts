@@ -1,5 +1,5 @@
-import type { Completion, LLMProvider, Prompt } from "./LLMProvider";
-import { CONTEXT_CLOSE, CONTEXT_OPEN, QUARANTINED, renderPrompt } from "./prompt";
+import type { Completion, LLMProvider, Prompt } from "@/core/providers/LLMProvider";
+import { CONTEXT_CLOSE, CONTEXT_OPEN, QUARANTINED, renderPrompt } from "@/core/providers/prompt";
 
 export interface MockProviderOptions {
   /** Override the reply, e.g. to simulate a model that leaks PHI or invents tokens. */
@@ -27,9 +27,10 @@ function contextFields(prompt: Prompt): Map<string, string> {
 }
 
 /**
+ * Test double, not shipped in the app (which always calls a real model).
  * Deterministic stand-in for a real model. Builds a clinical-style summary
  * from the (tokenized) context it was given, so tokens round-trip through
- * the whole pipeline and every claim is grounded. Lets the demo run with no API key.
+ * the whole pipeline and every claim is grounded.
  */
 export class MockProvider implements LLMProvider {
   readonly name = "mock";

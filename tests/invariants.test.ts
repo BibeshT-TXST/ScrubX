@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { LLMProvider, Prompt } from "@/core/providers/LLMProvider";
-import { MockProvider } from "@/core/providers/MockProvider";
+import { MockProvider } from "./support/MockProvider";
 import type { PatientContext } from "@/core/types";
 import { CASES } from "./adversarial/cases";
 import { DEMO_IDS, patient, pipeline, request } from "./helpers";

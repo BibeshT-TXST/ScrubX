@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Pause, Play, RotateCcw, Shield, ShieldAlert } from "lucide-react";
+import { ChevronDown, Loader2, Pause, Play, RotateCcw, Shield, ShieldAlert } from "lucide-react";
 import type { StageSpan } from "@/core/pipeline/events";
 import type { StepSummary } from "@/core/pipeline/steps";
 import type { DecisionAction } from "@/core/types";
@@ -36,6 +36,8 @@ const ACTIONS: DecisionAction[] = ["block", "flag", "allow"];
 export function StageCard(p: Props) {
   const summary = p.steps[p.current]!;
   const blocked = summary.status === "blocked" || summary.status === "error";
+  const pending = summary.status === "pending";
+  const waiting = summary.step === "model" ? "Waiting for the model's reply…" : "Waiting for this step…";
 
   return (
     <section className="flex flex-col rounded-xl border bg-card shadow-xs">
@@ -103,12 +105,14 @@ export function StageCard(p: Props) {
       </div>
 
       <footer className="flex items-start gap-2 border-t px-5 py-3 text-sm">
-        {blocked ? (
+        {pending ? (
+          <Loader2 className="mt-0.5 size-4 shrink-0 animate-spin text-muted-foreground" />
+        ) : blocked ? (
           <ShieldAlert className="mt-0.5 size-4 shrink-0 text-red-600" />
         ) : (
           <Shield className="mt-0.5 size-4 shrink-0" />
         )}
-        <p className="flex-1">{summary.caption || "Waiting for this step…"}</p>
+        <p className={cn("flex-1", pending && "text-muted-foreground")}>{summary.caption || waiting}</p>
         <div className="flex shrink-0 items-center gap-1 text-muted-foreground">
           <button type="button" onClick={p.onToggle} className="rounded p-1 hover:bg-muted" aria-label={p.playing ? "Pause" : "Play"}>
             {p.playing ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}

@@ -3,9 +3,9 @@ import type { ChatTurn, PipelineResult } from "@/core/types";
 import { chatActions } from "./chat-store";
 import { readNdjson, type StreamEvent } from "./ndjson";
 
+// No role: the app has a single role, and in production the host sets it from auth.
 export interface ChatRequest {
   patientId: string;
-  role: string;
   message: string;
   history: ChatTurn[];
 }
@@ -38,13 +38,14 @@ export async function* streamPipeline(
 export const newRequestId = () => `req_${crypto.randomUUID().slice(0, 8)}`;
 
 /**
- * Runs one request and records it as a live trace, so Chat View and Dev View
+ * Runs one request and records it as a live trace, so Chat and the Security Division
  * see the same spans as they stream. The ID is minted here (and sent as
  * x-request-id) so callers can link to the trace before it finishes.
  */
 export function runRequest(body: ChatRequest, hooks: RunHooks = {}, signal?: AbortSignal) {
   const requestId = newRequestId();
-  chatActions.startTrace({ requestId, patientId: body.patientId, role: body.role, message: body.message });
+  const startedAt = Date.now();
+  chatActions.startTrace({ requestId, patientId: body.patientId, message: body.message, startedAt });
 
   const fail = (message: string) => {
     chatActions.failTrace(requestId, message);
@@ -69,5 +70,5 @@ export function runRequest(body: ChatRequest, hooks: RunHooks = {}, signal?: Abo
     }
   })();
 
-  return { requestId, done };
+  return { requestId, startedAt, done };
 }

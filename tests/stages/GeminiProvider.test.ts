@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { GeminiProvider, ProviderError } from "@/core/providers/GeminiProvider";
+import { GeminiProvider } from "@/core/providers/GeminiProvider";
+import { ProviderError } from "@/core/providers/LLMProvider";
 import { buildPrompt } from "@/core/providers/prompt";
 
 const prompt = buildPrompt({

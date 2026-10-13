@@ -1,4 +1,4 @@
-import type { Completion, LLMProvider, Prompt } from "./LLMProvider";
+import { ProviderError, type Completion, type LLMProvider, type Prompt } from "./LLMProvider";
 
 export const GEMINI_DEFAULT_MODEL = "gemini-3.8-flash";
 /** Used for the last retry: a lighter model is usually available when the main one is overloaded. */
@@ -42,17 +42,6 @@ interface GeminiResponse {
   usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
   modelVersion?: string;
   error?: { message?: string; status?: string };
-}
-
-export class ProviderError extends Error {
-  constructor(
-    message: string,
-    readonly retryable = false,
-    readonly status?: number,
-  ) {
-    super(message);
-    this.name = "ProviderError";
-  }
 }
 
 const sleep = (ms: number, signal?: AbortSignal) =>

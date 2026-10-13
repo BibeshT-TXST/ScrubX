@@ -10,13 +10,10 @@ const threshold = (fallback: number) => z.coerce.number().min(0).max(1).default(
 
 const EnvSchema = z
   .object({
-    LLM_PROVIDER: z.enum(["mock", "gemini"]).default("mock"),
     LLM_MODEL: z.string().optional(),
     // Model for the final retry when the main one is overloaded; "none" disables it.
     LLM_FALLBACK_MODEL: z.string().optional(),
     GEMINI_API_KEY: z.string().optional(),
-    // Simulated model latency for the mock, so the streamed trace is visible in the UI.
-    MOCK_LATENCY_MS: z.coerce.number().int().min(0).max(10_000).default(500),
     PATIENT_SOURCE: z.enum(["demo", "supabase"]).default("demo"),
     SUPABASE_URL: z.url().optional(),
     SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
@@ -31,18 +28,15 @@ const EnvSchema = z
   .refine((e) => e.PATIENT_SOURCE !== "supabase" || (e.SUPABASE_URL && e.SUPABASE_SERVICE_ROLE_KEY), {
     message: "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required when PATIENT_SOURCE=supabase",
   })
-  .refine((e) => e.LLM_PROVIDER !== "gemini" || e.GEMINI_API_KEY, {
-    message: "GEMINI_API_KEY is required when LLM_PROVIDER=gemini",
-  });
+;
 
 export interface ScrubXConfig {
+  /** Gemini. Without an apiKey the app still runs and every chat reports it couldn't connect. */
   llm: {
-    provider: "mock" | "gemini";
+    apiKey?: string;
     model?: string;
     /** undefined = provider default, null = no fallback. */
     fallbackModel?: string | null;
-    apiKey?: string;
-    mockLatencyMs: number;
   };
   patientSource: "demo" | "supabase";
   /** Present when patientSource is "supabase". Server-side only. */
@@ -59,11 +53,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   const e = EnvSchema.parse(set);
   return {
     llm: {
-      provider: e.LLM_PROVIDER,
+      apiKey: e.GEMINI_API_KEY,
       model: e.LLM_MODEL,
       fallbackModel: e.LLM_FALLBACK_MODEL === "none" ? null : e.LLM_FALLBACK_MODEL,
-      apiKey: e.GEMINI_API_KEY,
-      mockLatencyMs: e.MOCK_LATENCY_MS,
     },
     patientSource: e.PATIENT_SOURCE,
     ...(e.PATIENT_SOURCE === "supabase" && {

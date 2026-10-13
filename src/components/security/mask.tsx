@@ -3,7 +3,7 @@
 import { createContext, useContext } from "react";
 import { maskText } from "@/lib/trace-view";
 
-/** Hides known PHI values in any text the Dev View prints. */
+/** Hides known PHI values in any text the Security Division prints. */
 export interface Masker {
   enabled: boolean;
   text: (s: string) => string;

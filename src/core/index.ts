@@ -11,7 +11,7 @@ export * from "./data/PatientRepository";
 export * from "./data/DemoPatientRepository";
 export * from "./data/SupabasePatientRepository";
 export * from "./providers/LLMProvider";
-export * from "./providers/MockProvider";
 export * from "./providers/GeminiProvider";
+export * from "./providers/UnavailableProvider";
 export * from "./injection/scanner";
 export { FIELD_POLICY, RESTRICTED_FIELDS, fieldsForRole } from "./stages/Retrieval";

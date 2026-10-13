@@ -14,11 +14,11 @@ exports[`golden traces > answered with quarantine: hidden markup in the record 1
     "phiCounts": {},
     "provider": "mock",
     "requestId": "req_test",
-    "role": "physician",
+    "role": "medical_practitioner",
     "ruleIds": [],
     "score": 0,
     "timestamp": "2026-10-12T12:00:00.000Z",
-    "tokensCreated": 5,
+    "tokensCreated": 6,
     "tokensRehydrated": 6,
   },
   "outcome": "answered",
@@ -38,7 +38,7 @@ Regarding "How is her thyroid?": based on the record above, review these finding
           "historyTurns": 0,
           "messageChars": 19,
           "requestId": "req_test",
-          "role": "physician",
+          "role": "medical_practitioner",
         },
         "caption": "Request received from host, tagged with ID and role.",
         "input": {
@@ -178,10 +178,10 @@ Regarding "How is her thyroid?": based on the record above, review these finding
         "attributes": {
           "historyTurns": 0,
           "quarantined": 1,
-          "released": "name,dob,mrn,conditions,medications,description",
-          "withheld": "phone",
+          "released": "name,dob,mrn,phone,conditions,medications,description",
+          "withheld": "",
         },
-        "caption": "Retrieval is filtered by role (physician): 6 fields released, 1 withheld; 1 embedded instruction removed from the record.",
+        "caption": "Retrieval is filtered by role (medical_practitioner): 7 fields released, 0 withheld; 1 embedded instruction removed from the record.",
         "output": {
           "data": {
             "history": [],
@@ -189,17 +189,17 @@ Regarding "How is her thyroid?": based on the record above, review these finding
               "name",
               "dob",
               "mrn",
+              "phone",
               "conditions",
               "medications",
               "description",
             ],
-            "withheld": [
-              "phone",
-            ],
+            "withheld": [],
           },
           "text": "Name: [PATIENT_1]
 DOB: [DATE_1]
 MRN: [MRN_1]
+Phone: [PHONE_1]
 Conditions: hypothyroidism
 Medications: levothyroxine 75 mcg
 Description:
@@ -215,7 +215,7 @@ TSH 3.1 on [DATE_2]. Reports fatigue in the afternoon. No recent weight change."
       },
       {
         "attributes": {
-          "inputTokens": 302,
+          "inputTokens": 306,
           "model": "mock-clinical-v1",
           "outputTokens": 108,
           "provider": "mock",
@@ -237,6 +237,7 @@ Identifiers have been replaced with placeholders such as [PATIENT_1], [DATE_2] o
 Name: [PATIENT_1]
 DOB: [DATE_1]
 MRN: [MRN_1]
+Phone: [PHONE_1]
 Conditions: hypothyroidism
 Medications: levothyroxine 75 mcg
 Description:
@@ -331,6 +332,11 @@ Regarding "How is her thyroid?": based on the record above, review these finding
                 "value": "MRN-100801",
               },
               {
+                "token": "[PHONE_1]",
+                "type": "PHONE",
+                "value": "(737) 555-0156",
+              },
+              {
                 "token": "[AGE_1]",
                 "type": "AGE",
                 "value": "49",
@@ -370,7 +376,7 @@ Regarding "How is her thyroid?": based on the record above, review these finding
         "attributes": {
           "decision": "allow",
           "ruleIds": "",
-          "tokensCreated": 5,
+          "tokensCreated": 6,
         },
         "caption": "Audit line written: counts and rule IDs only, no PHI.",
         "output": {
@@ -386,11 +392,11 @@ Regarding "How is her thyroid?": based on the record above, review these finding
             "phiCounts": {},
             "provider": "mock",
             "requestId": "req_test",
-            "role": "physician",
+            "role": "medical_practitioner",
             "ruleIds": [],
             "score": 0,
             "timestamp": "2026-10-12T12:00:00.000Z",
-            "tokensCreated": 5,
+            "tokensCreated": 6,
             "tokensRehydrated": 6,
           },
         },
@@ -425,7 +431,7 @@ exports[`golden traces > answered: the site animation request 1`] = `
     },
     "provider": "mock",
     "requestId": "req_test",
-    "role": "physician",
+    "role": "medical_practitioner",
     "ruleIds": [
       "PHI-AGE-PREFIX",
       "PHI-DATE-NUMERIC",
@@ -433,7 +439,7 @@ exports[`golden traces > answered: the site animation request 1`] = `
     ],
     "score": 0,
     "timestamp": "2026-10-12T12:00:00.000Z",
-    "tokensCreated": 6,
+    "tokensCreated": 7,
     "tokensRehydrated": 10,
   },
   "outcome": "answered",
@@ -453,7 +459,7 @@ Regarding "Patient Maria Lopez, age 58, seen 03/14/2026. MRN-100231. Should we a
           "historyTurns": 0,
           "messageChars": 92,
           "requestId": "req_test",
-          "role": "physician",
+          "role": "medical_practitioner",
         },
         "caption": "Request received from host, tagged with ID and role.",
         "input": {
@@ -701,10 +707,10 @@ Regarding "Patient Maria Lopez, age 58, seen 03/14/2026. MRN-100231. Should we a
         "attributes": {
           "historyTurns": 0,
           "quarantined": 0,
-          "released": "name,dob,mrn,conditions,medications,description",
-          "withheld": "phone,address",
+          "released": "name,dob,mrn,phone,conditions,medications,description",
+          "withheld": "address",
         },
-        "caption": "Retrieval is filtered by role (physician): 6 fields released, 2 withheld.",
+        "caption": "Retrieval is filtered by role (medical_practitioner): 7 fields released, 1 withheld.",
         "output": {
           "data": {
             "history": [],
@@ -712,18 +718,19 @@ Regarding "Patient Maria Lopez, age 58, seen 03/14/2026. MRN-100231. Should we a
               "name",
               "dob",
               "mrn",
+              "phone",
               "conditions",
               "medications",
               "description",
             ],
             "withheld": [
-              "phone",
               "address",
             ],
           },
           "text": "Name: [PATIENT_1]
 DOB: [DATE_2]
 MRN: [MRN_1]
+Phone: [PHONE_1]
 Conditions: type 2 diabetes, hypertension
 Medications: metformin 1000 mg, lisinopril 10 mg
 Description: [PATIENT_1] is a [AGE_1]-year-old woman with type 2 diabetes, seen [DATE_1] for a routine diabetes review. HbA1c 7.9%, up from 7.2% six months ago. Reports occasional morning dizziness. Takes metformin 1000 mg twice daily. Daughter [PERSON_1] helps manage medications.",
@@ -735,7 +742,7 @@ Description: [PATIENT_1] is a [AGE_1]-year-old woman with type 2 diabetes, seen 
       },
       {
         "attributes": {
-          "inputTokens": 346,
+          "inputTokens": 350,
           "model": "mock-clinical-v1",
           "outputTokens": 145,
           "provider": "mock",
@@ -757,6 +764,7 @@ Identifiers have been replaced with placeholders such as [PATIENT_1], [DATE_2] o
 Name: [PATIENT_1]
 DOB: [DATE_2]
 MRN: [MRN_1]
+Phone: [PHONE_1]
 Conditions: type 2 diabetes, hypertension
 Medications: metformin 1000 mg, lisinopril 10 mg
 Description: [PATIENT_1] is a [AGE_1]-year-old woman with type 2 diabetes, seen [DATE_1] for a routine diabetes review. HbA1c 7.9%, up from 7.2% six months ago. Reports occasional morning dizziness. Takes metformin 1000 mg twice daily. Daughter [PERSON_1] helps manage medications.
@@ -857,6 +865,11 @@ Regarding "Patient [PATIENT_1], age [AGE_1], seen [DATE_1]. [MRN_1]. Should we a
                 "value": "1968-02-09",
               },
               {
+                "token": "[PHONE_1]",
+                "type": "PHONE",
+                "value": "(512) 555-0142",
+              },
+              {
                 "token": "[PERSON_1]",
                 "type": "PERSON",
                 "value": "Elena Lopez",
@@ -891,7 +904,7 @@ Regarding "Patient Maria Lopez, age 58, seen 03/14/2026. MRN-100231. Should we a
         "attributes": {
           "decision": "allow",
           "ruleIds": "PHI-AGE-PREFIX,PHI-DATE-NUMERIC,PHI-MRN",
-          "tokensCreated": 6,
+          "tokensCreated": 7,
         },
         "caption": "Audit line written: counts and rule IDs only, no PHI.",
         "output": {
@@ -912,7 +925,7 @@ Regarding "Patient Maria Lopez, age 58, seen 03/14/2026. MRN-100231. Should we a
             },
             "provider": "mock",
             "requestId": "req_test",
-            "role": "physician",
+            "role": "medical_practitioner",
             "ruleIds": [
               "PHI-AGE-PREFIX",
               "PHI-DATE-NUMERIC",
@@ -920,7 +933,7 @@ Regarding "Patient Maria Lopez, age 58, seen 03/14/2026. MRN-100231. Should we a
             ],
             "score": 0,
             "timestamp": "2026-10-12T12:00:00.000Z",
-            "tokensCreated": 6,
+            "tokensCreated": 7,
             "tokensRehydrated": 10,
           },
         },
@@ -950,7 +963,7 @@ exports[`golden traces > blocked: direct injection 1`] = `
     "phiCounts": {},
     "provider": null,
     "requestId": "req_test",
-    "role": "physician",
+    "role": "medical_practitioner",
     "ruleIds": [
       "INJ-OVERRIDE",
       "INJ-TOKEN-MAP",
@@ -970,7 +983,7 @@ exports[`golden traces > blocked: direct injection 1`] = `
           "historyTurns": 0,
           "messageChars": 54,
           "requestId": "req_test",
-          "role": "physician",
+          "role": "medical_practitioner",
         },
         "caption": "Request received from host, tagged with ID and role.",
         "input": {
@@ -1203,7 +1216,7 @@ exports[`golden traces > blocked: direct injection 1`] = `
             "phiCounts": {},
             "provider": null,
             "requestId": "req_test",
-            "role": "physician",
+            "role": "medical_practitioner",
             "ruleIds": [
               "INJ-OVERRIDE",
               "INJ-TOKEN-MAP",

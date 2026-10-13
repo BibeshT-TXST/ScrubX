@@ -3,7 +3,7 @@ import { DemoPatientRepository } from "@/core/data/DemoPatientRepository";
 import { Pipeline, type PipelineDeps } from "@/core/pipeline/Pipeline";
 import type { StageContext } from "@/core/pipeline/Stage";
 import { TraceRecorder } from "@/core/pipeline/TraceRecorder";
-import { MockProvider } from "@/core/providers/MockProvider";
+import { MockProvider } from "./support/MockProvider";
 import type { PatientContext, PipelineRequest } from "@/core/types";
 import demoPatients from "../data/patients.demo.json";
 
@@ -26,7 +26,7 @@ export function ctx(overrides: Partial<StageContext> = {}): StageContext {
   let t = 0;
   return {
     requestId: "req_test",
-    role: "physician",
+    role: "medical_practitioner",
     config: config(),
     trace: new TraceRecorder({ traceId: "req_test", payloads: true, clock: () => t++, now: () => NOW }),
     now: NOW,
@@ -47,5 +47,5 @@ export function pipeline(deps: Partial<PipelineDeps> = {}): Pipeline {
 }
 
 export async function request(message: string, overrides: Partial<PipelineRequest> = {}): Promise<PipelineRequest> {
-  return { requestId: "req_test", role: "physician", message, patient: await patient(), ...overrides };
+  return { requestId: "req_test", role: "medical_practitioner", message, patient: await patient(), ...overrides };
 }

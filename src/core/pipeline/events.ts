@@ -32,7 +32,7 @@ export type SpanStatus = "ok" | "skipped" | "blocked" | "error";
 /** What a stage received or produced. Omitted entirely when trace payloads are off. */
 export interface StageSnapshot {
   text?: string;
-  /** Must be JSON-serializable: it travels to the Dev View as NDJSON. */
+  /** Must be JSON-serializable: it travels to the Security Division as NDJSON. */
   data?: unknown;
 }
 

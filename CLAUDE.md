@@ -33,7 +33,7 @@ src/core/         framework-free pipeline. Importable by the host without Next.j
   phi/            record-aware + dictionary classifier, label resolution, dictionaries
   injection/      InjectionScanner interface + HeuristicScanner
   tokens/         TokenVault (request-scoped, unserializable), tokenize / rehydrate, entity policy
-  providers/      LLMProvider, MockProvider, GeminiProvider (REST, no SDK), prompt template
+  providers/      LLMProvider, GeminiProvider (REST, no SDK), UnavailableProvider, prompt template
   data/           PatientRepository: Demo (bundled JSON) and Supabase (read-only PostgREST)
   config.ts       zod-validated env → ScrubXConfig
   schemas.ts      zod schemas for the host boundary; types are inferred from these
@@ -41,8 +41,8 @@ src/core/         framework-free pipeline. Importable by the host without Next.j
 src/server/       server-only wiring: env → config → repository + provider + Pipeline (built once)
 src/lib/          client/server shared: NDJSON helpers, pipeline client (runRequest), in-memory store
                   (chat threads + live traces), trace-view.ts (pure: segments, masking, step bodies)
-src/app/          Next.js App Router: Chat View `/`, Dev View `/dev`, `api/pipeline`, `api/patients[/id]`
-src/components/   ui/ (shadcn), chat/, dev/ (StageCard, PipelineGraph, StageInspector, DataLens, Panels)
+src/app/          Next.js App Router: Chat `/`, Security Division `/security`, `api/pipeline`, `api/patients[/id]`
+src/components/   ui/ (shadcn), chat/ (PatientList, PatientInfo, chat), security/ (StageCard, PipelineGraph, StageInspector, Panels)
 data/             patients.demo.json: synthetic only (also the Supabase seed source)
 supabase/         SQL migrations (patients table, RLS on, no policies)
 scripts/          seed-supabase.mjs (`npm run db:seed`), the only code that writes patient data
@@ -52,7 +52,7 @@ tests/            stages/ (one file per stage), pipeline/, adversarial/ (labeled
 
 API: `POST /api/pipeline` takes `{ patientId, role?, message, history? }` (zod), resolves the patient server-side and streams NDJSON: one `{type:"span"}` line per stage, then `{type:"result"}`, or `{type:"error"}` with a generic message if the run fails (details go to server logs). Honors a well-formed `x-request-id` from a host gateway.
 
-Dev View: `summarizeSteps()` (core) rolls spans into the 7 UI steps with captions built from span attributes only, so they survive payloads being off. Playback advances about one step per 0.9 s but never past the furthest step real stream events have reached. Anything that renders text goes through the mask context; a new panel must too.
+Security Division (read-only: patient tabs + that patient's chat log, then the selected request's trace): `summarizeSteps()` (core) rolls spans into the 7 UI steps with captions built from span attributes only, so they survive payloads being off. Playback advances about one step per 0.9 s but never past the furthest step real stream events have reached. Anything that renders text goes through the mask context; a new panel must too.
 
 Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ PhiClassifier] → RiskEngine → (Block | Tokenizer → Retrieval → LlmStage → OutputAnalysis → Rehydrator) → AuditLogger.
 
@@ -63,14 +63,16 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - **Zod at the boundary, types inferred.** Host input and env are validated once with zod. Don't hand-write a type that duplicates a schema.
 - **PHI never leaves via side channels.** Audit events hold counts and IDs only, never values or raw text, and a test enforces it. The token vault is request-scoped, never serialized, never logged, never sent to the client.
 - **Trace payloads follow the data.** Snapshots contain PHI, so when `SCRUBX_TRACE_PAYLOADS` is unset they are on only for `PATIENT_SOURCE=demo` (synthetic) and off for any real source. `TraceRecorder` strips snapshots when off, and every Dev View panel degrades to metadata.
-- **Unknown roles get the most restrictive field policy** (the fields every known role shares).
+- **One role, `medical_practitioner`** (all clinical fields, never the address). Unknown roles get `RESTRICTED_FIELDS` (name, dob), pinned explicitly, not derived from the known roles.
+- **Always a real model.** No mock in the app (the test double lives in `tests/support/`). A missing key or a failing model is the `unavailable` outcome: audited, traced, and shown to the clinician as "we couldn't connect". Never a crash.
+- **The Security Division is observation only.** It never sends requests.
 - **The core never fetches patients.** `PipelineRequest.patient` is the record; the API route resolves `patientId` server-side through `PatientRepository`, so the client never sends a record.
 - **Everything bound for the LLM is sanitized**, not just the message: Retrieval normalizes the role-filtered record and client-held history, quarantines sentences that carry instructions, and tokenizes them with the same vault.
 - **Synthetic data only**, in fixtures and in tests. No real patient data, ever.
 - **Stateless.** No filesystem writes, no module-level mutable state across requests (the `scrubx()` singleton is immutable wiring). Route handlers use Next 16's default Node runtime; don't add `runtime = "edge"` (deprecated).
 - **Server-only code imports `server-only`** (`src/server/*`), so the repository and pipeline wiring can never be bundled into the client.
 - **Patient reads stream behind `<Suspense>`, never `use cache`.** Pages load the summary list; full records come from `/api/patients/[id]` on demand.
-- **Client chat state is in memory only** (`src/lib/chat-store.ts`): it survives navigation between Chat and Dev View but not a refresh. No PHI in localStorage or sessionStorage.
+- **Client chat state is in memory only** (`src/lib/chat-store.ts`): it survives navigation between Chat and the Security Division but not a refresh. No PHI in localStorage or sessionStorage.
 - Captions shown in the UI are generated from trace data, never hardcoded per request.
 
 ## Code style
@@ -120,7 +122,7 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - [x] Phase 0: Skeleton (Vercel deploy is done by the user from the dashboard)
 - [x] Phase 1: Core pipeline, no UI
 - [x] Phase 2: API + Chat View
-- [x] Phase 3: Dev View
+- [x] Phase 3: Dev View (now the Security Division)
 - [x] Phase 4: Real model + polish (Gemini; OTel export deferred)
 - [x] Phase 5: Supabase
 

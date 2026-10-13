@@ -42,6 +42,7 @@ const CAPTIONS: Record<Step, (s: Spans) => string> = {
   model: (s) => {
     const retrieval = s.get("Retrieval");
     if (retrieval?.status === "skipped") return SKIPPED;
+    if (s.get("LlmStage")?.status === "error") return "Retrieval is filtered by role, but the model could not be reached.";
     const output = s.get("OutputAnalysis");
     const withheld = list(retrieval, "withheld").length;
     const quarantined = num(retrieval, "quarantined");
@@ -60,7 +61,7 @@ const CAPTIONS: Record<Step, (s: Spans) => string> = {
   },
   restore: (s) =>
     s.get("Rehydrator")?.status === "skipped"
-      ? "Nothing to restore. The audit log still records the decision, with no PHI."
+      ? "Nothing to restore. The audit log still records the outcome, with no PHI."
       : (s.get("Rehydrator")?.caption ?? ""),
 };
 

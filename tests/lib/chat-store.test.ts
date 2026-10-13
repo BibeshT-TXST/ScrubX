@@ -58,7 +58,7 @@ describe("chatActions", () => {
 
   it("builds a live trace from streamed spans, then takes the result's trace", () => {
     const span = (stage: string) => ({ stage }) as unknown as StageSpan;
-    chatActions.startTrace({ requestId: "req_live", patientId: "pt-001", role: "nurse", message: "hi" });
+    chatActions.startTrace({ requestId: "req_live", patientId: "pt-001", message: "hi", startedAt: 1 });
     chatActions.addSpan("req_live", span("Receive"));
     chatActions.addSpan("req_live", span("InputNormalizer"));
     expect(getChatState().traces.req_live?.spans).toHaveLength(2);
@@ -78,17 +78,16 @@ describe("chatActions", () => {
   });
 
   it("keeps only the 20 most recent traces so memory stays bounded", () => {
-    for (let i = 0; i < 25; i++) chatActions.startTrace({ requestId: `req_${i}`, patientId: "p", role: "r", message: "m" });
+    for (let i = 0; i < 25; i++) chatActions.startTrace({ requestId: `req_${i}`, patientId: "p", message: "m", startedAt: i });
     const ids = Object.keys(getChatState().traces);
     expect(ids).toHaveLength(20);
     expect(ids[0]).toBe("req_5");
     expect(ids.at(-1)).toBe("req_24");
   });
 
-  it("stores the selected role and the mask toggle (masked by default)", () => {
+  it("stores the mask toggle (masked by default)", () => {
     expect(getChatState().mask).toBe(true);
-    chatActions.setRole("nurse");
     chatActions.setMask(false);
-    expect(getChatState()).toMatchObject({ role: "nurse", mask: false });
+    expect(getChatState().mask).toBe(false);
   });
 });

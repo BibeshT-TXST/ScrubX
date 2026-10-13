@@ -1,39 +1,46 @@
 import { describe, expect, it } from "vitest";
 import { HeuristicScanner } from "@/core/injection/scanner";
 import { QUARANTINED } from "@/core/providers/prompt";
-import { fieldsForRole, RESTRICTED_FIELDS, Retrieval } from "@/core/stages/Retrieval";
+import { FIELD_POLICY, fieldsForRole, RESTRICTED_FIELDS, Retrieval } from "@/core/stages/Retrieval";
 import { TokenVault } from "@/core/tokens/TokenVault";
 import { ctx, patient } from "../helpers";
 
 const retrieval = new Retrieval(new HeuristicScanner());
 
-async function retrieve(id: string, role = "physician", history: { role: "user" | "assistant"; content: string }[] = []) {
+async function retrieve(id: string, role = "medical_practitioner", history: { role: "user" | "assistant"; content: string }[] = []) {
   const vault = new TokenVault();
   const { output, span } = await retrieval.run({ patient: await patient(id), history, vault }, ctx({ role }));
   return { ...output, vault, span };
 }
 
 describe("field policy", () => {
-  it("gives unknown roles only the fields every known role shares", () => {
-    expect(RESTRICTED_FIELDS).toEqual(["name", "dob"]);
-    expect(fieldsForRole("janitor")).toBe(RESTRICTED_FIELDS);
-    expect(fieldsForRole("PHYSICIAN")).toBe(RESTRICTED_FIELDS);
+  it("has a single medical practitioner role", () => {
+    expect(FIELD_POLICY).toEqual({
+      medical_practitioner: ["name", "dob", "mrn", "phone", "conditions", "medications", "description"],
+    });
   });
 
-  it("releases only the role's fields that exist on the record", async () => {
-    const nurse = await retrieve("pt-001", "nurse");
-    expect(nurse.released).toEqual(["name", "dob", "conditions", "medications", "description"]);
-    expect(nurse.withheld).toEqual(["mrn", "phone", "address"]);
+  it("gives unknown roles identification only, never the practitioner's full access", () => {
+    expect(RESTRICTED_FIELDS).toEqual(["name", "dob"]);
+    expect(fieldsForRole("janitor")).toBe(RESTRICTED_FIELDS);
+    expect(fieldsForRole("MEDICAL_PRACTITIONER")).toBe(RESTRICTED_FIELDS);
+  });
 
-    const frontDesk = await retrieve("pt-001", "front_desk");
-    expect(frontDesk.released).toEqual(["name", "dob", "phone"]);
-    expect(frontDesk.context).not.toMatch(/diabetes|metformin/);
+  it("releases every clinical field but never the address", async () => {
+    const r = await retrieve("pt-001");
+    expect(r.released).toEqual(["name", "dob", "mrn", "phone", "conditions", "medications", "description"]);
+    expect(r.withheld).toEqual(["address"]);
+    expect(r.context).not.toContain("Cedar Hollow");
+
+    const unknown = await retrieve("pt-001", "contractor");
+    expect(unknown.released).toEqual(["name", "dob"]);
+    expect(unknown.context).not.toMatch(/diabetes|metformin/);
   });
 
   it("lists withheld fields by name only", async () => {
-    const { span } = await retrieve("pt-001", "front_desk");
-    expect(span.attributes.withheld).toBe("mrn,address,conditions,medications,description");
-    expect(span.caption).toBe("Retrieval is filtered by role (front_desk): 3 fields released, 5 withheld.");
+    const { span } = await retrieve("pt-001", "contractor");
+    expect(span.attributes.withheld).toBe("mrn,phone,address,conditions,medications,description");
+    expect(span.caption).toBe("Retrieval is filtered by role (contractor): 2 fields released, 6 withheld.");
   });
 });
 

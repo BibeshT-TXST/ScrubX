@@ -1,7 +1,7 @@
 import type { ScrubXConfig } from "../config";
 import { HeuristicScanner, type InjectionScanner } from "../injection/scanner";
 import { findingsToLabels, resolveLabels } from "../phi/labels";
-import type { LLMProvider } from "../providers/LLMProvider";
+import { MODEL_UNAVAILABLE, type Completion, type LLMProvider } from "../providers/LLMProvider";
 import { buildPrompt } from "../providers/prompt";
 import { AuditLogger, type AuditInput, type AuditSink } from "../stages/AuditLogger";
 import { Block } from "../stages/Block";
@@ -35,6 +35,11 @@ const SKIPPED_ON_BLOCK: [StageName, Step][] = [
   ["Tokenizer", "tokenize"],
   ["Retrieval", "model"],
   ["LlmStage", "model"],
+  ["OutputAnalysis", "model"],
+  ["Rehydrator", "restore"],
+];
+
+const SKIPPED_ON_UNAVAILABLE: [StageName, Step][] = [
   ["OutputAnalysis", "model"],
   ["Rehydrator", "restore"],
 ];
@@ -114,7 +119,23 @@ export class Pipeline {
     const { vault } = tokenized;
     const { output: retrieved } = await this.retrieval.run({ patient, history: received.history, vault }, ctx);
     const prompt = buildPrompt({ context: retrieved.context, history: retrieved.history, message: tokenized.text });
-    const { output: completion } = await this.llm.run(prompt, ctx);
+    let completion: Completion;
+    try {
+      ({ output: completion } = await this.llm.run(prompt, ctx));
+    } catch {
+      // The model is down, overloaded or not configured. That is an outcome, not a crash:
+      // the LLM span already records the error, the rest is skipped, and the audit is still written.
+      for (const [stage, step] of SKIPPED_ON_UNAVAILABLE) trace.skip(stage, step, "Skipped: the model could not be reached.");
+      const auditEvent = await audit({
+        outcome: "unavailable",
+        provider: this.llm.providerName,
+        tokensCreated: vault.size,
+        tokensRehydrated: 0,
+        contextQuarantined: retrieved.quarantined,
+        output: { leaks: 0, unknownTokens: 0, ungrounded: 0 },
+      });
+      return { requestId: req.requestId, outcome: "unavailable", response: MODEL_UNAVAILABLE, trace: trace.finish(), audit: auditEvent };
+    }
     const { output: verdict } = await this.outputAnalysis.run(
       {
         completion: completion.text,

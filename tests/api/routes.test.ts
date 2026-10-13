@@ -5,6 +5,15 @@ import { POST } from "@/app/api/pipeline/route";
 import type { PipelineResult } from "@/core/types";
 import { readNdjson, type StreamEvent } from "@/lib/ndjson";
 
+// Real repository and pipeline, with the test double standing in for Gemini.
+vi.mock("@/server/scrubx", async () => {
+  const { DemoPatientRepository, loadConfig, Pipeline } = await import("@/core");
+  const { MockProvider } = await import("../support/MockProvider");
+  const config = loadConfig({ SCRUBX_TRACE_PAYLOADS: "true" });
+  const wiring = { config, patients: new DemoPatientRepository(), pipeline: new Pipeline({ config, llm: new MockProvider() }) };
+  return { scrubx: () => wiring };
+});
+
 let stdout: MockInstance;
 beforeEach(() => {
   stdout = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -66,10 +75,13 @@ describe("POST /api/pipeline", () => {
     expect(minted.headers.get("x-request-id")).toMatch(/^req_[0-9a-f]{8}$/);
   });
 
-  it("applies the role's field policy", async () => {
-    const evs = await events(await post({ patientId: "pt-001", role: "front_desk", message: "Summarize." }));
-    const retrieval = result(evs).trace.spans.find((s) => s.stage === "Retrieval")!;
-    expect(retrieval.attributes.released).toBe("name,dob,phone");
+  it("defaults to the medical practitioner role, and restricts unknown roles", async () => {
+    const released = async (body: object) =>
+      result(await events(await post({ patientId: "pt-001", message: "Summarize.", ...body }))).trace.spans.find(
+        (s) => s.stage === "Retrieval",
+      )!.attributes.released;
+    expect(await released({})).toBe("name,dob,mrn,phone,conditions,medications,description");
+    expect(await released({ role: "contractor" })).toBe("name,dob");
   });
 
   it("streams a blocked request with the refusal", async () => {

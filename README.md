@@ -14,17 +14,16 @@ npm run dev      # http://localhost:3000
 npm run check    # typecheck + lint + tests
 ```
 
-Open `/` for the Chat View (pick a demo patient and a role, then ask a question) and `/dev` for the trace of each answer.
+Open `/` for Chat (pick a patient: their record on the left, the conversation on the right) and `/security` for the Security Division, a read-only view of how ScrubX handled every message in the session.
 
 ### API
 
-- `POST /api/pipeline`: `{ "patientId": "pt-001", "role": "physician", "message": "...", "history": [] }`. Streams NDJSON: one line per pipeline stage, then the final result with the response, trace and PHI-free audit event.
+- `POST /api/pipeline`: `{ "patientId": "pt-001", "message": "...", "history": [] }` (`role` is optional and defaults to `medical_practitioner`; in production the host sets it). Streams NDJSON: one line per pipeline stage, then the final result with the response, trace and PHI-free audit event.
 - `GET /api/patients` and `GET /api/patients/:id`: synthetic demo patients.
 
-Runs with zero configuration: mock LLM, synthetic demo patients. To use Gemini, add to `.env.local`:
+Answers come from Gemini. Add your key to `.env.local`; without one the app still runs, and every reply says it couldn't connect:
 
 ```bash
-LLM_PROVIDER=gemini
 GEMINI_API_KEY=...
 # optional: LLM_MODEL (default gemini-3.8-flash), LLM_FALLBACK_MODEL (default gemini-3.5-flash-lite)
 ```

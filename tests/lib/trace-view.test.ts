@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StageSpan } from "@/core/pipeline/events";
-import { MockProvider } from "@/core/providers/MockProvider";
+import { MockProvider } from "../support/MockProvider";
 import {
   detectedLabels,
   maskText,

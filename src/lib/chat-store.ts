@@ -7,6 +7,8 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   status?: "streaming" | "done" | "error";
+  /** When the request was sent, for the elapsed-time display while waiting. */
+  startedAt?: number;
   /** Latest pipeline step reported by the stream while the answer is in flight. */
   step?: Step;
   requestId?: string;
@@ -15,19 +17,18 @@ export interface ChatMessage {
   quarantined?: number;
 }
 
-/** A request as the Dev View sees it: spans accumulate as they stream in, then the result lands. */
+/** A request as the Security Division sees it: spans accumulate as they stream in, then the result lands. */
 export interface LiveTrace {
   requestId: string;
   patientId: string;
-  role: string;
   message: string;
+  startedAt: number;
   spans: StageSpan[];
   result?: PipelineResult;
   error?: string;
 }
 
 interface ChatState {
-  role: string;
   mask: boolean;
   threads: Record<string, ChatMessage[]>;
   traces: Record<string, LiveTrace>;
@@ -37,10 +38,10 @@ const MAX_TRACES = 20;
 const HISTORY_TURNS = 10;
 
 /**
- * In-memory only. Survives navigating between Chat View and Dev View but
+ * In-memory only. Survives navigating between Chat and the Security Division but
  * not a refresh, which matches the stateless design: no PHI in browser storage.
  */
-let state: ChatState = { role: "physician", mask: true, threads: {}, traces: {} };
+let state: ChatState = { mask: true, threads: {}, traces: {} };
 const listeners = new Set<() => void>();
 
 function set(update: (s: ChatState) => ChatState) {
@@ -67,10 +68,6 @@ function patchTrace(requestId: string, patch: (t: LiveTrace) => Partial<LiveTrac
 }
 
 export const chatActions = {
-  setRole(role: string) {
-    set((s) => ({ ...s, role }));
-  },
-
   setMask(mask: boolean) {
     set((s) => ({ ...s, mask }));
   },

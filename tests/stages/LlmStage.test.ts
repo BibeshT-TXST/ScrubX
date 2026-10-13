@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MockProvider } from "@/core/providers/MockProvider";
+import { MockProvider } from "../support/MockProvider";
 import { buildPrompt, renderPrompt } from "@/core/providers/prompt";
 import { LlmStage } from "@/core/stages/LlmStage";
 import { ctx } from "../helpers";

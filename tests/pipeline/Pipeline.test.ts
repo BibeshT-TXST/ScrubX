@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MODEL_UNAVAILABLE } from "@/core/providers/LLMProvider";
 import { REFUSAL } from "@/core/stages/Block";
 import type { StageEvent } from "@/core/pipeline/events";
 import { config, DEMO_IDS, patient, pipeline, request } from "../helpers";
@@ -86,13 +87,18 @@ describe("Pipeline.run", () => {
     expect(JSON.stringify(result.trace)).not.toMatch(/maria|lopez|100231|03\/14/i);
   });
 
-  it("propagates a provider failure after recording an error span", async () => {
+  it("turns an unreachable model into the couldn't-connect outcome, still audited", async () => {
     const failing = { name: "down", complete: async () => Promise.reject(new Error("provider unavailable")) };
-    const spans: string[] = [];
-    await expect(
-      pipeline({ llm: failing }).run(await request("hello"), (s) => spans.push(`${s.stage}:${s.status}`)),
-    ).rejects.toThrow("provider unavailable");
-    expect(spans.at(-1)).toBe("LlmStage:error");
+    const lines: string[] = [];
+    const result = await pipeline({ llm: failing, auditSink: (l) => lines.push(l) }).run(await request("hello"));
+    expect(result).toMatchObject({ outcome: "unavailable", response: MODEL_UNAVAILABLE, audit: { outcome: "unavailable", decision: "allow" } });
+    expect(result.trace.spans.map((s) => [s.stage, s.status]).slice(-4)).toEqual([
+      ["LlmStage", "error"],
+      ["OutputAnalysis", "skipped"],
+      ["Rehydrator", "skipped"],
+      ["AuditLogger", "ok"],
+    ]);
+    expect(lines).toHaveLength(1);
   });
 });
 
@@ -107,14 +113,14 @@ describe("Pipeline.stream", () => {
     expect(spans.map((e) => e.span)).toEqual(last.result.trace.spans);
   });
 
-  it("rethrows a pipeline failure after the spans recorded so far", async () => {
-    const failing = { name: "down", complete: async () => Promise.reject(new Error("boom")) };
+  it("rethrows an unexpected crash after the spans recorded so far", async () => {
+    const broken = { name: "broken", scan: async () => Promise.reject(new Error("boom")) };
     const seen: string[] = [];
     await expect(async () => {
-      for await (const e of pipeline({ llm: failing }).stream(await request("hello"))) {
+      for await (const e of pipeline({ scanner: broken }).stream(await request("hello"))) {
         if (e.type === "span") seen.push(e.span.stage);
       }
     }).rejects.toThrow("boom");
-    expect(seen.at(-1)).toBe("LlmStage");
+    expect(seen).toContain("SemanticScan");
   });
 });

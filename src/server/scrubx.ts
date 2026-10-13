@@ -3,9 +3,9 @@ import {
   DemoPatientRepository,
   GeminiProvider,
   loadConfig,
-  MockProvider,
   Pipeline,
   SupabasePatientRepository,
+  UnavailableProvider,
   type LLMProvider,
   type PatientRepository,
   type ScrubXConfig,
@@ -17,14 +17,12 @@ interface ScrubX {
   pipeline: Pipeline;
 }
 
-function createProvider(config: ScrubXConfig): LLMProvider {
-  switch (config.llm.provider) {
-    case "mock":
-      return new MockProvider({ latencyMs: config.llm.mockLatencyMs });
-    case "gemini":
-      // loadConfig already guarantees the key is present for this provider.
-      return new GeminiProvider({ apiKey: config.llm.apiKey!, model: config.llm.model, fallbackModel: config.llm.fallbackModel });
-  }
+// Always a real model. Without a key the app still runs, and every chat reports
+// that it couldn't connect instead of the server failing to start.
+function createProvider({ llm }: ScrubXConfig): LLMProvider {
+  return llm.apiKey
+    ? new GeminiProvider({ apiKey: llm.apiKey, model: llm.model, fallbackModel: llm.fallbackModel })
+    : new UnavailableProvider("No model is configured (GEMINI_API_KEY is not set)");
 }
 
 function createRepository(config: ScrubXConfig): PatientRepository {

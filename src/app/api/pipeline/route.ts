@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ChatTurnSchema } from "@/core";
+import { ChatTurnSchema, DEFAULT_ROLE } from "@/core";
 import { NDJSON_CONTENT_TYPE, toNdjson, type StreamEvent } from "@/lib/ndjson";
 import { scrubx } from "@/server/scrubx";
 
@@ -9,8 +9,8 @@ export const maxDuration = 60;
 // The client names a patient; the record itself is resolved here, server-side.
 const BodySchema = z.object({
   patientId: z.string().min(1).max(64),
-  // In production the host sets this from its auth layer. The demo lets the user pick.
-  role: z.string().min(1).max(40).default("physician"),
+  // Set by the host's auth layer. The app has one role, so the browser doesn't send it.
+  role: z.string().min(1).max(40).default(DEFAULT_ROLE),
   message: z.string().trim().min(1).max(4000),
   history: z.array(ChatTurnSchema).max(20).default([]),
 });
