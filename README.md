@@ -5,3 +5,13 @@ ScrubX is a security gateway that sits between a clinical app and an LLM. A doct
 ScrubX runs as a single service with a staged pipeline i.e. normalize, detect, decide, tokenize, call and restore. Each stage is a module behind its own interface, so anyone can be swapped or pulled into its own service without touching the others. Audit writes happen off the request path.
 
 ![System Architecture](./docs/ScrubX.png)
+
+## Development
+
+```bash
+npm install
+npm run dev      # http://localhost:3000
+npm run check    # typecheck + lint + tests
+```
+
+Runs with zero configuration: mock LLM, synthetic demo patients. See `.env.example` for optional settings. The pipeline core in `src/core` is framework-free so a host project can import it directly.
