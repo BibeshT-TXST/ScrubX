@@ -44,7 +44,7 @@ const RowSchema = z.object({
 });
 type Row = z.infer<typeof RowSchema>;
 
-const SummarySchema = RowSchema.pick({ id: true, name: true, summary: true });
+const SummarySchema = RowSchema.pick({ id: true, name: true, dob: true, mrn: true, summary: true });
 
 function toPatient(row: Row): PatientContext {
   const { id, description, name, dob, mrn, phone, address, medications, conditions } = row;
@@ -101,7 +101,7 @@ export class SupabasePatientRepository implements PatientRepository {
   }
 
   async list(): Promise<PatientSummary[]> {
-    const rows = await this.query("select=id,name,summary&order=id.asc");
+    const rows = await this.query("select=id,name,dob,mrn,summary&order=id.asc");
     return z.array(SummarySchema).parse(rows);
   }
 

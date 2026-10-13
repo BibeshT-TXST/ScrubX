@@ -35,11 +35,12 @@ const repo = (impl: typeof fetch) =>
 
 describe("SupabasePatientRepository", () => {
   it("lists summaries with one read-only query, authenticated server-side", async () => {
-    const { impl, calls } = fakeFetch(200, [{ id: "pt-002", name: "James Okafor", summary: ROW.summary }]);
-    expect(await repo(impl).list()).toEqual([{ id: "pt-002", name: "James Okafor", summary: ROW.summary }]);
+    const summary = { id: "pt-002", name: "James Okafor", dob: ROW.dob, mrn: ROW.mrn, summary: ROW.summary };
+    const { impl, calls } = fakeFetch(200, [summary]);
+    expect(await repo(impl).list()).toEqual([summary]);
 
     const { url, init } = calls[0]!;
-    expect(url).toBe("https://abc.supabase.co/rest/v1/patients?select=id,name,summary&order=id.asc");
+    expect(url).toBe("https://abc.supabase.co/rest/v1/patients?select=id,name,dob,mrn,summary&order=id.asc");
     expect(init.method).toBe("GET");
     expect(init.headers).toMatchObject({ apikey: "service-key", authorization: "Bearer service-key" });
   });

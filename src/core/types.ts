@@ -64,9 +64,13 @@ export interface Decision {
   contributions: { source: string; score: number }[];
 }
 
+/** What the patient list shows. Name + DOB + MRN: two identifiers on every row, so a wrong-patient pick is visible. */
 export interface PatientSummary {
   id: string;
   name: string;
+  /** ISO date (YYYY-MM-DD). */
+  dob: string;
+  mrn: string;
   summary: string;
 }
 

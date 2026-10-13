@@ -5,12 +5,14 @@ import demoPatients from "../../data/patients.demo.json";
 describe("DemoPatientRepository", () => {
   const repo = new DemoPatientRepository();
 
-  it("lists every demo patient as a summary without the full record", async () => {
+  it("lists every demo patient with two identifiers but without the full record", async () => {
     const list = await repo.list();
     expect(list).toHaveLength(demoPatients.length);
     expect(list[0]).toEqual({
       id: "pt-001",
       name: "Maria Lopez",
+      dob: "1968-02-09",
+      mrn: "MRN-100231",
       summary: "58F, type 2 diabetes, rising HbA1c",
     });
     expect(list[0]).not.toHaveProperty("fields");

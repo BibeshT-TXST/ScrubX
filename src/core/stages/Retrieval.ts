@@ -49,6 +49,15 @@ function fieldValue(patient: PatientContext, key: PatientFieldKey): string | und
   return Array.isArray(v) ? v.join(", ") : v || undefined;
 }
 
+function partition(patient: PatientContext, role: string) {
+  const allowed = fieldsForRole(role);
+  const present = FIELD_ORDER.filter((k) => fieldValue(patient, k) !== undefined);
+  return { released: present.filter((k) => allowed.includes(k)), withheld: present.filter((k) => !allowed.includes(k)) };
+}
+
+const recordText = (patient: PatientContext, fields: readonly PatientFieldKey[]) =>
+  fields.map((k) => `${FIELD_LABEL[k]}: ${fieldValue(patient, k)}`).join("\n");
+
 /**
  * Step 6a. Builds the context the model sees: role-filtered record plus prior
  * turns. Both are untrusted (indirect injection), so they get the same
@@ -65,10 +74,7 @@ export class Retrieval extends Stage<RetrievalInput, Retrieved> {
   }
 
   protected async process({ patient, history, vault }: RetrievalInput, ctx: StageContext): Promise<Retrieved> {
-    const allowed = fieldsForRole(ctx.role);
-    const present = FIELD_ORDER.filter((k) => fieldValue(patient, k) !== undefined);
-    const released = present.filter((k) => allowed.includes(k));
-    const withheld = present.filter((k) => !allowed.includes(k));
+    const { released, withheld } = partition(patient, ctx.role);
 
     let quarantined = 0;
     const sanitize = async (text: string) => {
@@ -78,7 +84,7 @@ export class Retrieval extends Stage<RetrievalInput, Retrieved> {
     };
 
     // Sequential on purpose: token numbering follows reading order.
-    const context = await sanitize(released.map((k) => `${FIELD_LABEL[k]}: ${fieldValue(patient, k)}`).join("\n"));
+    const context = await sanitize(recordText(patient, released));
     const turns: ChatTurn[] = [];
     for (const t of history) turns.push({ role: t.role, content: await sanitize(t.content) });
 
@@ -101,6 +107,12 @@ export class Retrieval extends Stage<RetrievalInput, Retrieved> {
       }),
     );
     return { text: lines.join("\n"), removed };
+  }
+
+  // The role-filtered record as stored, before any scrubbing. Next to the output it shows
+  // exactly what was changed on the way to the model. Withheld fields never appear here.
+  protected override snapshotInput({ patient, history }: RetrievalInput, ctx: StageContext) {
+    return { text: recordText(patient, partition(patient, ctx.role).released), data: { history } };
   }
 
   protected override snapshotOutput(out: Retrieved) {

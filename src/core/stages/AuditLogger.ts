@@ -56,8 +56,4 @@ export class AuditLogger extends Stage<AuditInput, AuditEvent> {
       attributes: { decision: event.decision, ruleIds: event.ruleIds.join(","), tokensCreated: event.tokensCreated },
     };
   }
-
-  protected override snapshotOutput(event: AuditEvent) {
-    return { data: event };
-  }
 }

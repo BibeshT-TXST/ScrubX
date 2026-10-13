@@ -104,10 +104,16 @@ describe("POST /api/pipeline", () => {
 });
 
 describe("GET /api/patients", () => {
-  it("lists summaries", async () => {
+  it("lists summaries with two identifiers and nothing from the full record", async () => {
     const list = await (await listPatients()).json();
     expect(list).toHaveLength(8);
-    expect(list[0]).toEqual({ id: "pt-001", name: "Maria Lopez", summary: "58F, type 2 diabetes, rising HbA1c" });
+    expect(list[0]).toEqual({
+      id: "pt-001",
+      name: "Maria Lopez",
+      dob: "1968-02-09",
+      mrn: "MRN-100231",
+      summary: "58F, type 2 diabetes, rising HbA1c",
+    });
   });
 
   it("gets one record by id, or 404", async () => {

@@ -37,7 +37,7 @@ export abstract class Stage<I, O> {
 
   protected abstract process(input: I, ctx: StageContext): Promise<O>;
 
-  protected snapshotInput(_input: I): StageSnapshot | undefined {
+  protected snapshotInput(_input: I, _ctx: StageContext): StageSnapshot | undefined {
     return undefined;
   }
 
@@ -63,7 +63,7 @@ export abstract class Stage<I, O> {
         ...base,
         status: "error",
         durationMs: trace.elapsed() - startMs,
-        input: this.snapshotInput(input),
+        input: this.snapshotInput(input, ctx),
         attributes: {},
         error: err instanceof Error ? err.message : String(err),
       });
@@ -78,7 +78,7 @@ export abstract class Stage<I, O> {
       status,
       durationMs,
       attributes,
-      input: this.snapshotInput(input),
+      input: this.snapshotInput(input, ctx),
       output: this.snapshotOutput(output),
     });
     return { output, span };

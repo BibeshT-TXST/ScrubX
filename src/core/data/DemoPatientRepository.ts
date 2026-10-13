@@ -16,7 +16,7 @@ export class DemoPatientRepository implements PatientRepository {
 
   constructor(records: unknown = demoPatients) {
     const parsed = DemoFileSchema.parse(records);
-    this.summaries = parsed.map(({ id, fields, summary }) => ({ id, name: fields.name, summary }));
+    this.summaries = parsed.map(({ id, fields: { name, dob, mrn }, summary }) => ({ id, name, dob, mrn, summary }));
     this.byId = new Map(parsed.map(({ summary: _summary, ...patient }) => [patient.id, patient]));
     if (this.byId.size !== parsed.length) throw new Error("Duplicate patient id in demo data");
   }

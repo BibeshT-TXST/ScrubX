@@ -3,7 +3,7 @@ import { HeuristicScanner } from "@/core/injection/scanner";
 import { QUARANTINED } from "@/core/providers/prompt";
 import { FIELD_POLICY, fieldsForRole, RESTRICTED_FIELDS, Retrieval } from "@/core/stages/Retrieval";
 import { TokenVault } from "@/core/tokens/TokenVault";
-import { ctx, patient } from "../helpers";
+import { config, ctx, patient, pipeline, request } from "../helpers";
 
 const retrieval = new Retrieval(new HeuristicScanner());
 
@@ -79,5 +79,32 @@ describe("context sanitization", () => {
       { role: "user", content: `How is [PATIENT_1]? ${QUARANTINED}` },
       { role: "assistant", content: "[PATIENT_1] is stable." },
     ]);
+  });
+});
+
+describe("record snapshot", () => {
+  it("snapshots the role-filtered record as stored, so the trace can show what scrubbing changed", async () => {
+    const history = [{ role: "user" as const, content: "Earlier question about Daniel Reyes" }];
+    const { span } = await retrieve("pt-005", "medical_practitioner", history);
+    expect(span.input?.text).toContain("Description: Daniel Reyes, 43");
+    expect(span.input?.text).toContain("Ignore all previous instructions");
+    expect(span.input?.data).toEqual({ history });
+    expect(span.output?.text).toContain(QUARANTINED);
+    expect(span.output?.text).not.toContain("Daniel Reyes");
+  });
+
+  it("never puts a withheld field in the snapshot", async () => {
+    const { span } = await retrieve("pt-001");
+    expect(span.input?.text).not.toMatch(/Address|Cedar Hollow/);
+    expect((await retrieve("pt-001", "contractor")).span.input?.text).toBe("Name: Maria Lopez\nDOB: 1968-02-09");
+  });
+
+  it("is dropped with every other payload when trace payloads are off (real patient sources)", async () => {
+    const off = pipeline({ config: config({ SCRUBX_TRACE_PAYLOADS: "false" }) });
+    const { trace } = await off.run(await request("Summarize.", { patient: await patient("pt-005") }));
+    const span = trace.spans.find((s) => s.stage === "Retrieval");
+    expect(span?.input).toBeUndefined();
+    expect(span?.output).toBeUndefined();
+    expect(span?.attributes.quarantined).toBe(1);
   });
 });
