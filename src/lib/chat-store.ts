@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { Step } from "@/core/pipeline/events";
+import type { StageSpan, Step } from "@/core/pipeline/events";
 import type { ChatTurn, DecisionAction, PipelineResult } from "@/core/types";
 
 export interface ChatMessage {
@@ -15,20 +15,32 @@ export interface ChatMessage {
   quarantined?: number;
 }
 
-interface ChatState {
+/** A request as the Dev View sees it: spans accumulate as they stream in, then the result lands. */
+export interface LiveTrace {
+  requestId: string;
+  patientId: string;
   role: string;
-  threads: Record<string, ChatMessage[]>;
-  results: Record<string, PipelineResult>;
+  message: string;
+  spans: StageSpan[];
+  result?: PipelineResult;
+  error?: string;
 }
 
-const MAX_RESULTS = 20;
+interface ChatState {
+  role: string;
+  mask: boolean;
+  threads: Record<string, ChatMessage[]>;
+  traces: Record<string, LiveTrace>;
+}
+
+const MAX_TRACES = 20;
 const HISTORY_TURNS = 10;
 
 /**
  * In-memory only. Survives navigating between Chat View and Dev View but
  * not a refresh, which matches the stateless design: no PHI in browser storage.
  */
-let state: ChatState = { role: "physician", threads: {}, results: {} };
+let state: ChatState = { role: "physician", mask: true, threads: {}, traces: {} };
 const listeners = new Set<() => void>();
 
 function set(update: (s: ChatState) => ChatState) {
@@ -47,9 +59,20 @@ export function useChatStore<T>(select: (s: ChatState) => T): T {
   return useSyncExternalStore(subscribe, () => select(state), () => select(state));
 }
 
+function patchTrace(requestId: string, patch: (t: LiveTrace) => Partial<LiveTrace>) {
+  set((s) => {
+    const t = s.traces[requestId];
+    return t ? { ...s, traces: { ...s.traces, [requestId]: { ...t, ...patch(t) } } } : s;
+  });
+}
+
 export const chatActions = {
   setRole(role: string) {
     set((s) => ({ ...s, role }));
+  },
+
+  setMask(mask: boolean) {
+    set((s) => ({ ...s, mask }));
   },
 
   append(patientId: string, ...messages: ChatMessage[]) {
@@ -63,15 +86,28 @@ export const chatActions = {
     }));
   },
 
-  saveResult(result: PipelineResult) {
+  clear(patientId: string) {
+    set((s) => ({ ...s, threads: { ...s.threads, [patientId]: [] } }));
+  },
+
+  startTrace(trace: Omit<LiveTrace, "spans">) {
     set((s) => {
-      const kept = Object.entries(s.results).slice(-(MAX_RESULTS - 1));
-      return { ...s, results: { ...Object.fromEntries(kept), [result.requestId]: result } };
+      const kept = Object.entries(s.traces).slice(-(MAX_TRACES - 1));
+      return { ...s, traces: { ...Object.fromEntries(kept), [trace.requestId]: { ...trace, spans: [] } } };
     });
   },
 
-  clear(patientId: string) {
-    set((s) => ({ ...s, threads: { ...s.threads, [patientId]: [] } }));
+  addSpan(requestId: string, span: StageSpan) {
+    patchTrace(requestId, (t) => ({ spans: [...t.spans, span] }));
+  },
+
+  // The result's trace is authoritative: it replaces the spans gathered from the stream.
+  finishTrace(requestId: string, result: PipelineResult) {
+    patchTrace(requestId, () => ({ result, spans: result.trace.spans }));
+  },
+
+  failTrace(requestId: string, error: string) {
+    patchTrace(requestId, () => ({ error }));
   },
 };
 

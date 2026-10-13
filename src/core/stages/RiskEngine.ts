@@ -62,12 +62,19 @@ export class RiskEngine extends Stage<RiskInput, Decision> {
     return { data: decision };
   }
 
-  protected override describe({ labels }: RiskInput, d: Decision): SpanDetails {
+  protected override describe({ labels }: RiskInput, d: Decision, ctx: StageContext): SpanDetails {
     const signals = d.contributions.length ? plural(d.contributions.length, "injection signal") : "no injection signals";
     return {
       caption: `Risk engine sees ${signals} and ${VERB[d.action]} it.`,
       status: d.action === "block" ? "blocked" : "ok",
-      attributes: { action: d.action, score: d.score, phiFields: labels.length },
+      attributes: {
+        action: d.action,
+        score: d.score,
+        signals: d.contributions.length,
+        phiFields: labels.length,
+        flagThreshold: ctx.config.risk.flagThreshold,
+        blockThreshold: ctx.config.risk.blockThreshold,
+      },
     };
   }
 }

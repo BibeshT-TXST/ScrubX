@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { StageSpan } from "@/core/pipeline/events";
 import type { PipelineResult } from "@/core/types";
 import { chatActions, getChatState, historyFor, type ChatMessage } from "@/lib/chat-store";
 
@@ -42,8 +43,6 @@ describe("historyFor", () => {
 });
 
 describe("chatActions", () => {
-  const result = (requestId: string) => ({ requestId }) as unknown as PipelineResult;
-
   it("keeps a separate thread per patient and updates messages by id", () => {
     chatActions.append("pt-a", user("hello"), reply("", "answered", "streaming"));
     chatActions.append("pt-b", user("other"));
@@ -57,16 +56,39 @@ describe("chatActions", () => {
     expect(getChatState().threads["pt-a"]).toEqual([]);
   });
 
-  it("keeps only the 20 most recent results so memory stays bounded", () => {
-    for (let i = 0; i < 25; i++) chatActions.saveResult(result(`req_${i}`));
-    const ids = Object.keys(getChatState().results);
+  it("builds a live trace from streamed spans, then takes the result's trace", () => {
+    const span = (stage: string) => ({ stage }) as unknown as StageSpan;
+    chatActions.startTrace({ requestId: "req_live", patientId: "pt-001", role: "nurse", message: "hi" });
+    chatActions.addSpan("req_live", span("Receive"));
+    chatActions.addSpan("req_live", span("InputNormalizer"));
+    expect(getChatState().traces.req_live?.spans).toHaveLength(2);
+
+    const final = { requestId: "req_live", trace: { spans: [span("Receive")] } } as unknown as PipelineResult;
+    chatActions.finishTrace("req_live", final);
+    expect(getChatState().traces.req_live).toMatchObject({ result: final, spans: [{ stage: "Receive" }] });
+
+    chatActions.failTrace("req_live", "boom");
+    expect(getChatState().traces.req_live?.error).toBe("boom");
+  });
+
+  it("ignores spans for unknown traces", () => {
+    const before = getChatState();
+    chatActions.addSpan("req_missing", {} as StageSpan);
+    expect(getChatState()).toBe(before);
+  });
+
+  it("keeps only the 20 most recent traces so memory stays bounded", () => {
+    for (let i = 0; i < 25; i++) chatActions.startTrace({ requestId: `req_${i}`, patientId: "p", role: "r", message: "m" });
+    const ids = Object.keys(getChatState().traces);
     expect(ids).toHaveLength(20);
     expect(ids[0]).toBe("req_5");
     expect(ids.at(-1)).toBe("req_24");
   });
 
-  it("stores the selected role", () => {
+  it("stores the selected role and the mask toggle (masked by default)", () => {
+    expect(getChatState().mask).toBe(true);
     chatActions.setRole("nurse");
-    expect(getChatState().role).toBe("nurse");
+    chatActions.setMask(false);
+    expect(getChatState()).toMatchObject({ role: "nurse", mask: false });
   });
 });

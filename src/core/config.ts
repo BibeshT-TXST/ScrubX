@@ -1,11 +1,10 @@
 import { z } from "zod";
 import { DEFAULT_ENTITY_POLICY, type EntityPolicies } from "./tokens/tokenize";
 
-const flag = (fallback: boolean) =>
-  z
-    .enum(["true", "false"])
-    .optional()
-    .transform((v) => (v === undefined ? fallback : v === "true"));
+const flag = z
+  .enum(["true", "false"])
+  .optional()
+  .transform((v) => (v === undefined ? undefined : v === "true"));
 
 const threshold = (fallback: number) => z.coerce.number().min(0).max(1).default(fallback);
 
@@ -17,8 +16,8 @@ const EnvSchema = z
     // Simulated model latency for the mock, so the streamed trace is visible in the UI.
     MOCK_LATENCY_MS: z.coerce.number().int().min(0).max(10_000).default(500),
     PATIENT_SOURCE: z.enum(["demo", "supabase"]).default("demo"),
-    // Off by default: snapshots contain PHI. Only the synthetic demo turns it on.
-    SCRUBX_TRACE_PAYLOADS: flag(false),
+    // Snapshots contain PHI. Unset, they are on only for the synthetic demo data (see loadConfig).
+    SCRUBX_TRACE_PAYLOADS: flag,
     RISK_BLOCK_THRESHOLD: threshold(0.8),
     RISK_FLAG_THRESHOLD: threshold(0.4),
   })
@@ -45,7 +44,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   return {
     llm: { provider: e.LLM_PROVIDER, model: e.LLM_MODEL, apiKey: e.OPENROUTER_API_KEY, mockLatencyMs: e.MOCK_LATENCY_MS },
     patientSource: e.PATIENT_SOURCE,
-    tracePayloads: e.SCRUBX_TRACE_PAYLOADS,
+    tracePayloads: e.SCRUBX_TRACE_PAYLOADS ?? e.PATIENT_SOURCE === "demo",
     risk: { blockThreshold: e.RISK_BLOCK_THRESHOLD, flagThreshold: e.RISK_FLAG_THRESHOLD },
     entityPolicy: DEFAULT_ENTITY_POLICY,
   };

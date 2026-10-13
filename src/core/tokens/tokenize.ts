@@ -8,6 +8,9 @@ export const DEFAULT_ENTITY_POLICY: EntityPolicies = Object.fromEntries(
   PHI_TYPES.map((t) => [t, "tokenize"]),
 ) as EntityPolicies;
 
+/** Replaces raw PHI or unknown tokens that OutputAnalysis removed from an answer. */
+export const REDACTED = "[REDACTED]";
+
 /** Matches any well-formed token, e.g. [PATIENT_1]. */
 export const TOKEN_PATTERN = new RegExp(`\\[(?:${PHI_TYPES.join("|")})_\\d+\\]`, "g");
 

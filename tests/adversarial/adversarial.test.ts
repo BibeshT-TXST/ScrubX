@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MockProvider } from "@/core/providers/MockProvider";
-import { REDACTED } from "@/core/stages/OutputAnalysis";
+import { REDACTED } from "@/core/tokens/tokenize";
 import { patient, pipeline, request } from "../helpers";
 import { CASES } from "./cases";
 

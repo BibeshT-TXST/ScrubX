@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { PatientContext } from "@/core/types";
 import { chatActions, historyFor, useChatStore, type ChatMessage } from "@/lib/chat-store";
-import { streamPipeline } from "@/lib/pipeline-client";
+import { runRequest } from "@/lib/pipeline-client";
 import { Message } from "./Message";
 import { PatientPanel } from "./PatientPanel";
 
@@ -54,30 +54,24 @@ export function ChatView({ patients }: { patients: PatientContext[] }) {
 
     const controller = new AbortController();
     inflight.current = controller;
-    try {
-      for await (const event of streamPipeline({ patientId: thread, role, message, history }, controller.signal)) {
-        if (event.type === "span") {
-          chatActions.update(thread, replyId, { step: event.span.step });
-        } else if (event.type === "result") {
-          const { result } = event;
-          chatActions.saveResult(result);
+    const { requestId, done } = runRequest(
+      { patientId: thread, role, message, history },
+      {
+        onSpan: (span) => chatActions.update(thread, replyId, { step: span.step }),
+        onResult: (result) =>
           chatActions.update(thread, replyId, {
             status: "done",
             content: result.response,
-            requestId: result.requestId,
             outcome: result.outcome,
             decision: result.audit.decision,
             quarantined: result.audit.contextQuarantined,
-          });
-        } else {
-          chatActions.update(thread, replyId, { status: "error", content: event.message });
-        }
-      }
-    } catch (err) {
-      if (!controller.signal.aborted) {
-        chatActions.update(thread, replyId, { status: "error", content: err instanceof Error ? err.message : "Request failed" });
-      }
-    }
+          }),
+        onError: (error) => chatActions.update(thread, replyId, { status: "error", content: error }),
+      },
+      controller.signal,
+    );
+    chatActions.update(thread, replyId, { requestId });
+    await done;
   }
 
   return (

@@ -1,14 +1,14 @@
 import { Suspense } from "react";
-import { TraceList } from "@/components/dev/TraceList";
+import { DevView } from "@/components/dev/DevView";
+import { scrubx } from "@/server/scrubx";
 
-// Phase 2 placeholder: a plain span list so "View trace" works end to end.
-// Phase 3 replaces this with the full Dev View (stage card, graph, data lens).
-export default function DevPage() {
+// Dev View: watch one request move through every stage. The trace itself
+// lives in the browser tab that ran it; the server keeps nothing.
+export default async function DevPage() {
+  const patients = await scrubx().patients.list();
   return (
-    <main className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading trace…</p>}>
-        <TraceList />
-      </Suspense>
-    </main>
+    <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Loading…</p>}>
+      <DevView patients={patients} />
+    </Suspense>
   );
 }

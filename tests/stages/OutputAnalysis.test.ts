@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { OutputAnalysis, REDACTED } from "@/core/stages/OutputAnalysis";
+import { OutputAnalysis } from "@/core/stages/OutputAnalysis";
+import { REDACTED } from "@/core/tokens/tokenize";
 import { TokenVault } from "@/core/tokens/TokenVault";
 import { ctx, patient } from "../helpers";
 

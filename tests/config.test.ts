@@ -3,11 +3,11 @@ import { loadConfig } from "@/core/config";
 import { DEFAULT_ENTITY_POLICY } from "@/core/tokens/tokenize";
 
 describe("loadConfig", () => {
-  it("defaults to a keyless mock demo with trace payloads off", () => {
+  it("defaults to a keyless mock demo; payloads are on only because the data is synthetic", () => {
     expect(loadConfig({})).toEqual({
       llm: { provider: "mock", model: undefined, apiKey: undefined, mockLatencyMs: 500 },
       patientSource: "demo",
-      tracePayloads: false,
+      tracePayloads: true,
       risk: { blockThreshold: 0.8, flagThreshold: 0.4 },
       entityPolicy: DEFAULT_ENTITY_POLICY,
     });
@@ -17,16 +17,22 @@ describe("loadConfig", () => {
     const cfg = loadConfig({ LLM_PROVIDER: "", RISK_BLOCK_THRESHOLD: "", SCRUBX_TRACE_PAYLOADS: "" });
     expect(cfg.llm.provider).toBe("mock");
     expect(cfg.risk.blockThreshold).toBe(0.8);
-    expect(cfg.tracePayloads).toBe(false);
+    expect(cfg.tracePayloads).toBe(true);
+  });
+
+  it("keeps trace payloads off by default for any non-demo patient source", () => {
+    expect(loadConfig({ PATIENT_SOURCE: "supabase" }).tracePayloads).toBe(false);
+    expect(loadConfig({ PATIENT_SOURCE: "supabase", SCRUBX_TRACE_PAYLOADS: "true" }).tracePayloads).toBe(true);
+    expect(loadConfig({ SCRUBX_TRACE_PAYLOADS: "false" }).tracePayloads).toBe(false);
   });
 
   it("parses flags and thresholds", () => {
     const cfg = loadConfig({
-      SCRUBX_TRACE_PAYLOADS: "true",
+      SCRUBX_TRACE_PAYLOADS: "false",
       RISK_BLOCK_THRESHOLD: "0.9",
       RISK_FLAG_THRESHOLD: "0.5",
     });
-    expect(cfg.tracePayloads).toBe(true);
+    expect(cfg.tracePayloads).toBe(false);
     expect(cfg.risk).toEqual({ blockThreshold: 0.9, flagThreshold: 0.5 });
   });
 

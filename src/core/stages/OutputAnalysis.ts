@@ -2,11 +2,9 @@ import { MEDICATIONS } from "../phi/dictionaries";
 import { detectPhi } from "../phi/classify";
 import { Stage, type SpanDetails, type StageContext } from "../pipeline/Stage";
 import type { TokenVault } from "../tokens/TokenVault";
-import { TOKEN_PATTERN } from "../tokens/tokenize";
+import { REDACTED, TOKEN_PATTERN } from "../tokens/tokenize";
 import type { PatientContext, PhiType } from "../types";
 import { plural } from "./format";
-
-export const REDACTED = "[REDACTED]";
 
 export interface OutputInput {
   completion: string;

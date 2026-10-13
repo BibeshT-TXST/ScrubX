@@ -43,6 +43,11 @@ export class TokenVault {
     return [...this.#byToken].map(([token, { type }]) => ({ token, type }));
   }
 
+  /** Token → value pairs for trace snapshots, which only exist when trace payloads are on. */
+  snapshot(): { token: string; type: PhiType; value: string }[] {
+    return [...this.#byToken].map(([token, { type, value }]) => ({ token, type, value }));
+  }
+
   /** Raw values. Only for leak checks inside the pipeline and tests. */
   values(): string[] {
     return [...this.#byToken.values()].map((e) => e.value);

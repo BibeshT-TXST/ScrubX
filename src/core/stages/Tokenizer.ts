@@ -33,7 +33,7 @@ export class Tokenizer extends Stage<TokenizerInput, Tokenized> {
 
   // The token map holds real values, so it only exists when trace payloads are on (synthetic demo).
   protected override snapshotOutput(out: Tokenized) {
-    return { text: out.text, data: { map: out.vault.tokens().map((t) => ({ ...t, value: out.vault.resolve(t.token) })) } };
+    return { text: out.text, data: { map: out.vault.snapshot() } };
   }
 
   protected override describe(_in: TokenizerInput, out: Tokenized): SpanDetails {

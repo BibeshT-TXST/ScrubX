@@ -129,8 +129,11 @@ Regarding "How is her thyroid?": based on the record above, review these finding
       {
         "attributes": {
           "action": "allow",
+          "blockThreshold": 0.8,
+          "flagThreshold": 0.4,
           "phiFields": 0,
           "score": 0,
+          "signals": 0,
         },
         "caption": "Risk engine sees no injection signals and allows it.",
         "output": {
@@ -305,6 +308,35 @@ Regarding "How is her thyroid?": based on the record above, review these finding
         },
         "caption": "Tokens are swapped back (6 replacements). The audit log keeps no PHI.",
         "input": {
+          "data": {
+            "map": [
+              {
+                "token": "[PATIENT_1]",
+                "type": "PATIENT",
+                "value": "Priya Natarajan",
+              },
+              {
+                "token": "[DATE_1]",
+                "type": "DATE",
+                "value": "1977-01-25",
+              },
+              {
+                "token": "[MRN_1]",
+                "type": "MRN",
+                "value": "MRN-100801",
+              },
+              {
+                "token": "[AGE_1]",
+                "type": "AGE",
+                "value": "49",
+              },
+              {
+                "token": "[DATE_2]",
+                "type": "DATE",
+                "value": "08/22/2026",
+              },
+            ],
+          },
           "text": "Summary for [PATIENT_1] ([MRN_1]):
 - Conditions: hypothyroidism
 - Medications: levothyroxine 75 mcg
@@ -559,8 +591,11 @@ Regarding "Patient Maria Lopez, age 58, seen 03/14/2026. MRN-100231. Should we a
       {
         "attributes": {
           "action": "allow",
+          "blockThreshold": 0.8,
+          "flagThreshold": 0.4,
           "phiFields": 4,
           "score": 0,
+          "signals": 0,
         },
         "caption": "Risk engine sees no injection signals and allows it.",
         "output": {
@@ -784,6 +819,40 @@ Regarding "Patient [PATIENT_1], age [AGE_1], seen [DATE_1]. [MRN_1]. Should we a
         },
         "caption": "Tokens are swapped back (10 replacements). The audit log keeps no PHI.",
         "input": {
+          "data": {
+            "map": [
+              {
+                "token": "[PATIENT_1]",
+                "type": "PATIENT",
+                "value": "Maria Lopez",
+              },
+              {
+                "token": "[AGE_1]",
+                "type": "AGE",
+                "value": "58",
+              },
+              {
+                "token": "[DATE_1]",
+                "type": "DATE",
+                "value": "03/14/2026",
+              },
+              {
+                "token": "[MRN_1]",
+                "type": "MRN",
+                "value": "MRN-100231",
+              },
+              {
+                "token": "[DATE_2]",
+                "type": "DATE",
+                "value": "1968-02-09",
+              },
+              {
+                "token": "[PERSON_1]",
+                "type": "PERSON",
+                "value": "Elena Lopez",
+              },
+            ],
+          },
           "text": "Summary for [PATIENT_1] ([MRN_1]):
 - Conditions: type 2 diabetes, hypertension
 - Medications: metformin 1000 mg, lisinopril 10 mg
@@ -1010,8 +1079,11 @@ exports[`golden traces > blocked: direct injection 1`] = `
       {
         "attributes": {
           "action": "block",
+          "blockThreshold": 0.8,
+          "flagThreshold": 0.4,
           "phiFields": 0,
           "score": 1,
+          "signals": 4,
         },
         "caption": "Risk engine sees 4 injection signals and blocks it.",
         "output": {

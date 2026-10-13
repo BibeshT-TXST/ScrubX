@@ -39,15 +39,18 @@ src/core/         framework-free pipeline. Importable by the host without Next.j
   schemas.ts      zod schemas for the host boundary; types are inferred from these
   types.ts        domain types (PHI labels, findings, decisions, audit, results)
 src/server/       server-only wiring: env → config → repository + provider + Pipeline (built once)
-src/lib/          client/server shared: NDJSON stream helpers, pipeline client, in-memory chat store
+src/lib/          client/server shared: NDJSON helpers, pipeline client (runRequest), in-memory store
+                  (chat threads + live traces), trace-view.ts (pure: segments, masking, step bodies)
 src/app/          Next.js App Router: Chat View `/`, Dev View `/dev`, `api/pipeline`, `api/patients[/id]`
-src/components/   ui/ (shadcn), chat/, dev/
+src/components/   ui/ (shadcn), chat/, dev/ (StageCard, PipelineGraph, StageInspector, DataLens, Panels)
 data/             patients.demo.json: synthetic only
 tests/            stages/ (one file per stage), pipeline/, adversarial/ (labeled cases),
                   fixtures/ (golden traces), invariants.test.ts
 ```
 
 API: `POST /api/pipeline` takes `{ patientId, role?, message, history? }` (zod), resolves the patient server-side and streams NDJSON: one `{type:"span"}` line per stage, then `{type:"result"}`, or `{type:"error"}` with a generic message if the run fails (details go to server logs). Honors a well-formed `x-request-id` from a host gateway.
+
+Dev View: `summarizeSteps()` (core) rolls spans into the 7 UI steps with captions built from span attributes only, so they survive payloads being off. Playback advances about one step per 0.9 s but never past the furthest step real stream events have reached. Anything that renders text goes through the mask context; a new panel must too.
 
 Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ PhiClassifier] → RiskEngine → (Block | Tokenizer → Retrieval → LlmStage → OutputAnalysis → Rehydrator) → AuditLogger.
 
@@ -57,7 +60,7 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - **Every stage extends `Stage<I, O>`** and implements `process()`. Timing, snapshots, span creation and error capture live in `Stage.run()`. Never re-implement them in a stage. Adding a stage = one class + one line in `Pipeline`.
 - **Zod at the boundary, types inferred.** Host input and env are validated once with zod. Don't hand-write a type that duplicates a schema.
 - **PHI never leaves via side channels.** Audit events hold counts and IDs only, never values or raw text, and a test enforces it. The token vault is request-scoped, never serialized, never logged, never sent to the client.
-- **Trace payloads are opt-in.** `SCRUBX_TRACE_PAYLOADS` defaults to `false`; only the demo turns it on. `TraceRecorder` strips snapshots when it's off.
+- **Trace payloads follow the data.** Snapshots contain PHI, so when `SCRUBX_TRACE_PAYLOADS` is unset they are on only for `PATIENT_SOURCE=demo` (synthetic) and off for any real source. `TraceRecorder` strips snapshots when off, and every Dev View panel degrades to metadata.
 - **Unknown roles get the most restrictive field policy** (the fields every known role shares).
 - **The core never fetches patients.** `PipelineRequest.patient` is the record; the API route resolves `patientId` server-side through `PatientRepository`, so the client never sends a record.
 - **Everything bound for the LLM is sanitized**, not just the message: Retrieval normalizes the role-filtered record and client-held history, quarantines sentences that carry instructions, and tokenizes them with the same vault.
@@ -75,6 +78,8 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - Rules and thresholds are data/config, not branches in code.
 - React effects use block bodies. Returning a value from an effect makes React call it as cleanup (newer browsers return a Promise from `scrollIntoView`).
 - Every stage gets its own test file in `tests/stages/`. Bug fixes come with a test.
+- View logic belongs in `src/lib/trace-view.ts` as pure functions with tests; components stay thin.
+- Verify UI changes in a real browser (build + `next start`, then drive it), not only with unit tests. The Phase 2 and 3 UI bugs were caught that way.
 - Golden traces live in `tests/fixtures/__snapshots__`. A diff there means a stage changed its output: review it, then `npx vitest -u`.
 - New attack patterns go into `tests/adversarial/cases.ts` with an expected decision; add benign look-alikes too.
 
@@ -111,7 +116,7 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - [x] Phase 0: Skeleton (Vercel deploy is done by the user from the dashboard)
 - [x] Phase 1: Core pipeline, no UI
 - [x] Phase 2: API + Chat View
-- [ ] Phase 3: Dev View
+- [x] Phase 3: Dev View
 - [ ] Phase 4: Real model + polish
 - [ ] Phase 5: Supabase
 

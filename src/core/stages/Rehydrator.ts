@@ -17,8 +17,10 @@ export class Rehydrator extends Stage<RehydratorInput, { text: string; count: nu
     return rehydrateText(text, vault);
   }
 
+  // The vault as Rehydrator reads it: complete, unlike the Tokenizer's snapshot,
+  // which predates the tokens Retrieval adds for the record and history.
   protected override snapshotInput(input: RehydratorInput) {
-    return { text: input.text };
+    return { text: input.text, data: { map: input.vault.snapshot() } };
   }
 
   protected override snapshotOutput(out: { text: string }) {
