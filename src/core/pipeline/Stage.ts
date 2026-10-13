@@ -8,6 +8,8 @@ export interface StageContext {
   role: string;
   config: ScrubXConfig;
   trace: TraceRecorder;
+  /** Request start time. Fixed per request so age math and timestamps agree (and tests are deterministic). */
+  now: Date;
   /** Set by the orchestrator when stages fan out (detectors share the normalizer as parent). */
   parentSpanId?: string;
 }

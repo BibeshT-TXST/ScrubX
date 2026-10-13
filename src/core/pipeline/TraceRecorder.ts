@@ -62,6 +62,11 @@ export class TraceRecorder {
     });
   }
 
+  /** Duration per stage so far (for the audit line). */
+  timings(): Record<string, number> {
+    return Object.fromEntries(this.spans.map((s) => [s.stage, Math.round(s.durationMs * 100) / 100]));
+  }
+
   finish(): Trace {
     return {
       traceId: this.traceId,

@@ -29,18 +29,11 @@ export type StageName =
 
 export type SpanStatus = "ok" | "skipped" | "blocked" | "error";
 
-export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
-
 /** What a stage received or produced. Omitted entirely when trace payloads are off. */
 export interface StageSnapshot {
   text?: string;
-  data?: JsonValue;
+  /** Must be JSON-serializable: it travels to the Dev View as NDJSON. */
+  data?: unknown;
 }
 
 export type SpanAttributes = Record<string, string | number | boolean>;

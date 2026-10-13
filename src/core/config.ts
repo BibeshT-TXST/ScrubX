@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_ENTITY_POLICY, type EntityPolicies } from "./tokens/tokenize";
 
 const flag = (fallback: boolean) =>
   z
@@ -31,6 +32,8 @@ export interface ScrubXConfig {
   patientSource: "demo" | "supabase";
   tracePayloads: boolean;
   risk: { blockThreshold: number; flagThreshold: number };
+  /** Per PHI type: tokenize (default), keep, or bucket (AGE only). Set in code, not env. */
+  entityPolicy: EntityPolicies;
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): ScrubXConfig {
@@ -42,5 +45,6 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     patientSource: e.PATIENT_SOURCE,
     tracePayloads: e.SCRUBX_TRACE_PAYLOADS,
     risk: { blockThreshold: e.RISK_BLOCK_THRESHOLD, flagThreshold: e.RISK_FLAG_THRESHOLD },
+    entityPolicy: DEFAULT_ENTITY_POLICY,
   };
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "@/core/config";
+import { DEFAULT_ENTITY_POLICY } from "@/core/tokens/tokenize";
 
 describe("loadConfig", () => {
   it("defaults to a keyless mock demo with trace payloads off", () => {
@@ -8,6 +9,7 @@ describe("loadConfig", () => {
       patientSource: "demo",
       tracePayloads: false,
       risk: { blockThreshold: 0.8, flagThreshold: 0.4 },
+      entityPolicy: DEFAULT_ENTITY_POLICY,
     });
   });
 

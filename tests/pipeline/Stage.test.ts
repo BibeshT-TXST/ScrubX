@@ -41,7 +41,7 @@ function setup(payloads = true) {
     now: () => new Date("2026-01-01T00:00:00Z"),
     onSpan: (s) => emitted.push(s),
   });
-  const ctx: StageContext = { requestId: "req_1", role: "physician", config: loadConfig({}), trace };
+  const ctx: StageContext = { requestId: "req_1", role: "physician", config: loadConfig({}), trace, now: new Date("2026-01-01T00:00:00Z") };
   return { ctx, trace, emitted };
 }
 
