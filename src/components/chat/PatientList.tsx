@@ -1,8 +1,8 @@
 "use client";
 
 import { MessageSquareText, Search, X } from "lucide-react";
-import { motion } from "motion/react";
 import { useId, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import { SelectedTab } from "@/components/clinical/SelectedTab";
 import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
 import type { PatientSummary } from "@/core/types";
@@ -108,13 +108,7 @@ export function PatientList({ patients, selectedId, onSelect, active, className 
           const sex = sexFromSummary(p.summary);
           return (
             <li key={p.id} className="relative">
-              {selected && (
-                <motion.span
-                  layoutId={tabId}
-                  aria-hidden
-                  className="absolute inset-0 rounded-l-xl border border-r-0 border-foreground/15 bg-background shadow-[-4px_4px_12px_-6px_rgb(0_0_0/0.25)]"
-                />
-              )}
+              {selected && <SelectedTab layoutId={tabId} />}
               <button
                 type="button"
                 onClick={() => onSelect(p.id)}
