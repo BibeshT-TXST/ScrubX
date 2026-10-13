@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { loadConfig } from "@/core/config";
 import { DEFAULT_ENTITY_POLICY } from "@/core/tokens/tokenize";
 
+const SUPABASE = { PATIENT_SOURCE: "supabase", SUPABASE_URL: "https://abc.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "k" };
+
 describe("loadConfig", () => {
   it("defaults to a keyless mock demo; payloads are on only because the data is synthetic", () => {
     expect(loadConfig({})).toEqual({
@@ -20,9 +22,16 @@ describe("loadConfig", () => {
     expect(cfg.tracePayloads).toBe(true);
   });
 
+  it("requires Supabase credentials for the supabase source and keeps them server-side config", () => {
+    expect(() => loadConfig({ PATIENT_SOURCE: "supabase" })).toThrow(/SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY/);
+    expect(() => loadConfig({ ...SUPABASE, SUPABASE_URL: "not a url" })).toThrow();
+    expect(loadConfig(SUPABASE).supabase).toEqual({ url: "https://abc.supabase.co", serviceRoleKey: "k" });
+    expect(loadConfig({}).supabase).toBeUndefined();
+  });
+
   it("keeps trace payloads off by default for any non-demo patient source", () => {
-    expect(loadConfig({ PATIENT_SOURCE: "supabase" }).tracePayloads).toBe(false);
-    expect(loadConfig({ PATIENT_SOURCE: "supabase", SCRUBX_TRACE_PAYLOADS: "true" }).tracePayloads).toBe(true);
+    expect(loadConfig(SUPABASE).tracePayloads).toBe(false);
+    expect(loadConfig({ ...SUPABASE, SCRUBX_TRACE_PAYLOADS: "true" }).tracePayloads).toBe(true);
     expect(loadConfig({ SCRUBX_TRACE_PAYLOADS: "false" }).tracePayloads).toBe(false);
   });
 

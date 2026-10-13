@@ -5,6 +5,7 @@ import {
   loadConfig,
   MockProvider,
   Pipeline,
+  SupabasePatientRepository,
   type LLMProvider,
   type PatientRepository,
   type ScrubXConfig,
@@ -31,7 +32,8 @@ function createRepository(config: ScrubXConfig): PatientRepository {
     case "demo":
       return new DemoPatientRepository();
     case "supabase":
-      throw new Error("PATIENT_SOURCE=supabase is not available yet (Phase 5)");
+      // loadConfig guarantees url and key for this source.
+      return new SupabasePatientRepository(config.supabase!);
   }
 }
 

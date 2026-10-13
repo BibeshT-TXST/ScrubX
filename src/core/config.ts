@@ -18,6 +18,8 @@ const EnvSchema = z
     // Simulated model latency for the mock, so the streamed trace is visible in the UI.
     MOCK_LATENCY_MS: z.coerce.number().int().min(0).max(10_000).default(500),
     PATIENT_SOURCE: z.enum(["demo", "supabase"]).default("demo"),
+    SUPABASE_URL: z.url().optional(),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
     // Snapshots contain PHI. Unset, they are on only for the synthetic demo data (see loadConfig).
     SCRUBX_TRACE_PAYLOADS: flag,
     RISK_BLOCK_THRESHOLD: threshold(0.8),
@@ -25,6 +27,9 @@ const EnvSchema = z
   })
   .refine((e) => e.RISK_FLAG_THRESHOLD < e.RISK_BLOCK_THRESHOLD, {
     message: "RISK_FLAG_THRESHOLD must be below RISK_BLOCK_THRESHOLD",
+  })
+  .refine((e) => e.PATIENT_SOURCE !== "supabase" || (e.SUPABASE_URL && e.SUPABASE_SERVICE_ROLE_KEY), {
+    message: "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required when PATIENT_SOURCE=supabase",
   })
   .refine((e) => e.LLM_PROVIDER !== "gemini" || e.GEMINI_API_KEY, {
     message: "GEMINI_API_KEY is required when LLM_PROVIDER=gemini",
@@ -40,6 +45,8 @@ export interface ScrubXConfig {
     mockLatencyMs: number;
   };
   patientSource: "demo" | "supabase";
+  /** Present when patientSource is "supabase". Server-side only. */
+  supabase?: { url: string; serviceRoleKey: string };
   tracePayloads: boolean;
   risk: { blockThreshold: number; flagThreshold: number };
   /** Per PHI type: tokenize (default), keep, or bucket (AGE only). Set in code, not env. */
@@ -59,6 +66,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
       mockLatencyMs: e.MOCK_LATENCY_MS,
     },
     patientSource: e.PATIENT_SOURCE,
+    ...(e.PATIENT_SOURCE === "supabase" && {
+      supabase: { url: e.SUPABASE_URL!, serviceRoleKey: e.SUPABASE_SERVICE_ROLE_KEY! },
+    }),
     tracePayloads: e.SCRUBX_TRACE_PAYLOADS ?? e.PATIENT_SOURCE === "demo",
     risk: { blockThreshold: e.RISK_BLOCK_THRESHOLD, flagThreshold: e.RISK_FLAG_THRESHOLD },
     entityPolicy: DEFAULT_ENTITY_POLICY,

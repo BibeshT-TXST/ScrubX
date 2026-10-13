@@ -58,6 +58,15 @@ Every stage extends `Stage<I, O>` and implements `process()`. Timing, snapshots,
 - **Vault:** private fields; `toJSON` throws and the inspect hook prints a redacted summary.
 - **Trace payloads:** snapshots contain PHI. They are on by default only for the synthetic demo source and off for any real source. With payloads off, every panel degrades to metadata, and step captions are built from attributes so they still read correctly.
 
+## Patient data
+
+`PatientRepository` has two implementations behind `PATIENT_SOURCE`:
+
+- **demo:** `data/patients.demo.json`, imported into the bundle, so there is no I/O.
+- **supabase:** read-only PostgREST queries with the service-role key. The table (`supabase/migrations/0001_patients.sql`) has row-level security on and no policies, so browsers using the public anon key can read nothing. `npm run db:seed` upserts the same synthetic JSON.
+
+Pages load only the summary list. A full record is fetched by ID when needed, and patient reads sit behind `<Suspense>` so they stream per request and are never cached.
+
 ## Observability
 
 1. **In-app trace:** OpenTelemetry-shaped spans (`spanId`, `parentSpanId`, timings, attributes). The three detectors share the normalizer as parent.
@@ -75,7 +84,8 @@ All variables are optional; the demo runs with none. See `.env.example`.
 | `LLM_MODEL` | `gemini-3.8-flash` | |
 | `LLM_FALLBACK_MODEL` | `gemini-3.5-flash-lite` | Used for the last retry; `none` disables |
 | `MOCK_LATENCY_MS` | `500` | Makes the streamed trace visible with the mock |
-| `PATIENT_SOURCE` | `demo` | `demo` or `supabase` |
+| `PATIENT_SOURCE` | `demo` | `demo` (bundled synthetic JSON) or `supabase` |
+| `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | | Required for `supabase`; server-side only |
 | `SCRUBX_TRACE_PAYLOADS` | on for `demo`, off otherwise | An explicit value always wins |
 | `RISK_FLAG_THRESHOLD` / `RISK_BLOCK_THRESHOLD` | `0.4` / `0.8` | Flag must be below block |
 

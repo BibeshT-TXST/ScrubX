@@ -34,7 +34,7 @@ src/core/         framework-free pipeline. Importable by the host without Next.j
   injection/      InjectionScanner interface + HeuristicScanner
   tokens/         TokenVault (request-scoped, unserializable), tokenize / rehydrate, entity policy
   providers/      LLMProvider, MockProvider, GeminiProvider (REST, no SDK), prompt template
-  data/           PatientRepository + DemoPatientRepository (used at the API boundary)
+  data/           PatientRepository: Demo (bundled JSON) and Supabase (read-only PostgREST)
   config.ts       zod-validated env → ScrubXConfig
   schemas.ts      zod schemas for the host boundary; types are inferred from these
   types.ts        domain types (PHI labels, findings, decisions, audit, results)
@@ -43,7 +43,9 @@ src/lib/          client/server shared: NDJSON helpers, pipeline client (runRequ
                   (chat threads + live traces), trace-view.ts (pure: segments, masking, step bodies)
 src/app/          Next.js App Router: Chat View `/`, Dev View `/dev`, `api/pipeline`, `api/patients[/id]`
 src/components/   ui/ (shadcn), chat/, dev/ (StageCard, PipelineGraph, StageInspector, DataLens, Panels)
-data/             patients.demo.json: synthetic only
+data/             patients.demo.json: synthetic only (also the Supabase seed source)
+supabase/         SQL migrations (patients table, RLS on, no policies)
+scripts/          seed-supabase.mjs (`npm run db:seed`), the only code that writes patient data
 tests/            stages/ (one file per stage), pipeline/, adversarial/ (labeled cases),
                   fixtures/ (golden traces), invariants.test.ts
 ```
@@ -67,6 +69,7 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - **Synthetic data only**, in fixtures and in tests. No real patient data, ever.
 - **Stateless.** No filesystem writes, no module-level mutable state across requests (the `scrubx()` singleton is immutable wiring). Route handlers use Next 16's default Node runtime; don't add `runtime = "edge"` (deprecated).
 - **Server-only code imports `server-only`** (`src/server/*`), so the repository and pipeline wiring can never be bundled into the client.
+- **Patient reads stream behind `<Suspense>`, never `use cache`.** Pages load the summary list; full records come from `/api/patients/[id]` on demand.
 - **Client chat state is in memory only** (`src/lib/chat-store.ts`): it survives navigation between Chat and Dev View but not a refresh. No PHI in localStorage or sessionStorage.
 - Captions shown in the UI are generated from trace data, never hardcoded per request.
 
@@ -119,6 +122,6 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - [x] Phase 2: API + Chat View
 - [x] Phase 3: Dev View
 - [x] Phase 4: Real model + polish (Gemini; OTel export deferred)
-- [ ] Phase 5: Supabase
+- [x] Phase 5: Supabase
 
 Update this list in the same commit that completes a phase.

@@ -10,7 +10,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm run lint && npm test"
+    "check": "npm run typecheck && npm run lint && npm test",
+    "db:seed": "node --env-file-if-exists=.env.local scripts/seed-supabase.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

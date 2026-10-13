@@ -9,6 +9,7 @@ export * from "./pipeline/steps";
 export * from "./pipeline/Pipeline";
 export * from "./data/PatientRepository";
 export * from "./data/DemoPatientRepository";
+export * from "./data/SupabasePatientRepository";
 export * from "./providers/LLMProvider";
 export * from "./providers/MockProvider";
 export * from "./providers/GeminiProvider";
