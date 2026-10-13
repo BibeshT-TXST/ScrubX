@@ -2,7 +2,7 @@
 
 ScrubX is built to sit inside [SightX](https://github.com/BibeshT-TXST/SightX), but it also runs standalone: a Chat demo, the Security Division, and the pipeline API, on bundled synthetic patients.
 
-This guide assumes you already know how to create a Supabase project and deploy to Vercel. It covers only what's specific to ScrubX.
+To try it without installing anything, use the live demo at [scrub-x-ivory.vercel.app](https://scrub-x-ivory.vercel.app). This guide is for running your own copy. It assumes you already know how to create a Supabase project and deploy to Vercel, and covers only what's specific to ScrubX.
 
 **You need:** Node.js 22 or newer and npm. A Gemini API key, a Supabase project and a Vercel account are each optional.
 
@@ -111,6 +111,8 @@ The response streams NDJSON:
 - one `{"type":"span"}` line per stage, as it finishes
 - then one `{"type":"result"}` line with the answer, the outcome, the full trace and the PHI-free audit event
 - or, if the pipeline fails, one `{"type":"error"}` line with a generic message (the details go to the server log)
+
+To try the API without a local server, point the same request at `https://scrub-x-ivory.vercel.app/api/pipeline`.
 
 Send an `x-request-id` header (letters, digits, `.`, `_`, `-`, up to 64 characters) to reuse your own ID. Otherwise ScrubX creates one.
 
