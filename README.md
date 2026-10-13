@@ -4,25 +4,7 @@
 
 ScrubX takes a clinician's question and the patient's record, removes everything that identifies the patient, stops prompt-injection attempts, and sends the model only tokenized text. It then checks the answer and puts the real names back before the clinician reads it. Every step leaves a trace you can inspect.
 
-We built ScrubX as a module of **[SightX](https://github.com/BibeshT-TXST/SightX)**, our diabetic retinopathy screening system.
-
-## Where it sits in SightX
-
-SightX grades retinal images with a ResNet-50 model, and keeps practitioners, clinical roles and diagnostic records in Supabase. The next step is letting clinicians ask an LLM on **AWS Bedrock** about a patient: explain a grade, summarize the history, compare two visits.
-
-That conversation is where the risk is, so ScrubX sits in the middle. The record from the database, the model's prediction and the clinician's question all pass through ScrubX before Bedrock sees any of it. The answer comes back through ScrubX before the clinician sees it.
-
-![ScrubX as a module inside the SightX backend, between Supabase, the inference engine and AWS Bedrock](./docs/SightX_integration.png)
-
-Following one question through the diagram (dashed lines are planned):
-
-1. The **frontend** sends the retinal images and the clinician's question to the **Express API gateway**.
-2. The gateway checks the session and clinical role against **Supabase Auth**, then gets the DR grade from the **inference engine**.
-3. The record, the prediction and the question go into the **ScrubX module**. ScrubX sanitizes and tokenizes them, and keeps the real values in its **token vault**.
-4. Only the **tokenized prompt** reaches **Bedrock**, through ScrubX's LLM provider interface. Bedrock never sees PHI.
-5. The **tokenized answer** comes back. ScrubX checks it, restores the real values, and the frontend shows the answer with real names.
-
-The pipeline core is plain TypeScript with no framework, so the Express gateway imports it directly. Authentication and roles stay with SightX, and ScrubX trusts the role it's handed.
+We built ScrubX as a module of **[SightX](https://github.com/BibeshT-TXST/SightX)**, our diabetic retinopathy screening system. It also runs on its own, which is how this repo runs it. [How it fits into SightX](#how-it-fits-into-sightx) comes after what it does.
 
 ## Why it exists
 
@@ -74,6 +56,24 @@ The model can still reason about the patient. It just never learns who she is.
 - **Nothing is kept on the server.** The token vault lives for one request, never serializes, and never leaves the server.
 - **The database is read-only.** ScrubX reads patients with row-level security set to deny everyone but its own server, and it never writes.
 - **An outage is an honest message, not a crash.** If the model can't be reached, the clinician sees "we couldn't connect", and the request is still audited.
+
+## How it fits into SightX
+
+SightX grades retinal images with a ResNet-50 model, and keeps practitioners, clinical roles and diagnostic records in Supabase. The next step is letting clinicians ask an LLM on **AWS Bedrock** about a patient: explain a grade, summarize the history, compare two visits.
+
+That conversation is where the risk is, so ScrubX sits in the middle. The record from the database, the model's prediction and the clinician's question all pass through ScrubX before Bedrock sees any of it. The answer comes back through ScrubX before the clinician sees it.
+
+![ScrubX as a module inside the SightX backend, between Supabase, the inference engine and AWS Bedrock](./docs/SightX_integration.png)
+
+Following one question through the diagram (dashed lines are planned):
+
+1. The **frontend** sends the retinal images and the clinician's question to the **Express API gateway**.
+2. The gateway checks the session and clinical role against **Supabase Auth**, then gets the DR grade from the **inference engine**.
+3. The record, the prediction and the question go into the **ScrubX module**. ScrubX sanitizes and tokenizes them, and keeps the real values in its **token vault**.
+4. Only the **tokenized prompt** reaches **Bedrock**, through ScrubX's LLM provider interface. Bedrock never sees PHI.
+5. The **tokenized answer** comes back. ScrubX checks it, restores the real values, and the frontend shows the answer with real names.
+
+The pipeline core is plain TypeScript with no framework, so the Express gateway imports it directly. Authentication and roles stay with SightX, and ScrubX trusts the role it's handed.
 
 ## What's in this repo
 
