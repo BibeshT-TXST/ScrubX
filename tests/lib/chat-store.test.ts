@@ -90,4 +90,16 @@ describe("chatActions", () => {
     chatActions.setMask(false);
     expect(getChatState().mask).toBe(false);
   });
+
+  it("never pre-selects a patient, and keeps the selection across views", () => {
+    expect(getChatState().selectedPatientId).toBeNull();
+    chatActions.selectPatient("pt-003");
+    expect(getChatState().selectedPatientId).toBe("pt-003");
+  });
+
+  it("keeps an unsent draft per patient", () => {
+    chatActions.setDraft("pt-a", "half-written question");
+    chatActions.setDraft("pt-b", "other");
+    expect(getChatState().drafts).toMatchObject({ "pt-a": "half-written question", "pt-b": "other" });
+  });
 });

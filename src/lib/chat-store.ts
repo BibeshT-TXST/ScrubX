@@ -7,11 +7,15 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   status?: "streaming" | "done" | "error";
+  /** When the message was written, or when the reply finished. */
+  at?: number;
   /** When the request was sent, for the elapsed-time display while waiting. */
   startedAt?: number;
   /** Latest pipeline step reported by the stream while the answer is in flight. */
   step?: Step;
   requestId?: string;
+  /** The model that actually answered (the fallback model can stand in). */
+  model?: string;
   decision?: DecisionAction;
   outcome?: PipelineResult["outcome"];
   quarantined?: number;
@@ -30,6 +34,10 @@ export interface LiveTrace {
 
 interface ChatState {
   mask: boolean;
+  /** Never pre-selected: the clinician always picks the patient. */
+  selectedPatientId: string | null;
+  /** Unsent text per patient, kept across navigation so an interruption loses nothing. */
+  drafts: Record<string, string>;
   threads: Record<string, ChatMessage[]>;
   traces: Record<string, LiveTrace>;
 }
@@ -41,7 +49,7 @@ const HISTORY_TURNS = 10;
  * In-memory only. Survives navigating between Chat and the Security Division but
  * not a refresh, which matches the stateless design: no PHI in browser storage.
  */
-let state: ChatState = { mask: true, threads: {}, traces: {} };
+let state: ChatState = { mask: true, selectedPatientId: null, drafts: {}, threads: {}, traces: {} };
 const listeners = new Set<() => void>();
 
 function set(update: (s: ChatState) => ChatState) {
@@ -70,6 +78,14 @@ function patchTrace(requestId: string, patch: (t: LiveTrace) => Partial<LiveTrac
 export const chatActions = {
   setMask(mask: boolean) {
     set((s) => ({ ...s, mask }));
+  },
+
+  selectPatient(patientId: string | null) {
+    set((s) => ({ ...s, selectedPatientId: patientId }));
+  },
+
+  setDraft(patientId: string, text: string) {
+    set((s) => ({ ...s, drafts: { ...s.drafts, [patientId]: text } }));
   },
 
   append(patientId: string, ...messages: ChatMessage[]) {

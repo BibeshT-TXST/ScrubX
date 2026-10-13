@@ -40,9 +40,11 @@ src/core/         framework-free pipeline. Importable by the host without Next.j
   types.ts        domain types (PHI labels, findings, decisions, audit, results)
 src/server/       server-only wiring: env → config → repository + provider + Pipeline (built once)
 src/lib/          client/server shared: NDJSON helpers, pipeline client (runRequest), in-memory store
-                  (chat threads + live traces), trace-view.ts (pure: segments, masking, step bodies)
+                  (chat threads, drafts, selected patient, live traces), trace-view.ts (pure: segments, masking,
+                  step bodies), clinical-format.ts (pure: dates, times, doses, Tall Man), display.ts (theme/density)
 src/app/          Next.js App Router: Chat `/`, Security Division `/security`, `api/pipeline`, `api/patients[/id]`
-src/components/   ui/ (shadcn), chat/ (PatientList, PatientInfo, chat), security/ (StageCard, PipelineGraph, StageInspector, Panels)
+src/components/   ui/ (shadcn), app/ (AppHeader, Providers, PageSkeleton), clinical/ (OutcomeBadge, Notice),
+                  chat/ (PatientList + search, PatientBanner, PatientRecord, ChatPanel), security/ (StageCard, PipelineGraph, StageInspector, Panels)
 data/             patients.demo.json: synthetic only (also the Supabase seed source)
 supabase/         SQL migrations (patients table, RLS on, no policies)
 scripts/          seed-supabase.mjs (`npm run db:seed`), the only code that writes patient data
@@ -52,7 +54,7 @@ tests/            stages/ (one file per stage), pipeline/, adversarial/ (labeled
 
 API: `POST /api/pipeline` takes `{ patientId, role?, message, history? }` (zod), resolves the patient server-side and streams NDJSON: one `{type:"span"}` line per stage, then `{type:"result"}`, or `{type:"error"}` with a generic message if the run fails (details go to server logs). Honors a well-formed `x-request-id` from a host gateway.
 
-Security Division (read-only: patient tabs + that patient's chat log, then the selected request's trace): `summarizeSteps()` (core) rolls spans into the 7 UI steps with captions built from span attributes only, so they survive payloads being off. Playback advances about one step per 0.9 s but never past the furthest step real stream events have reached. Anything that renders text goes through the mask context; a new panel must too.
+Security Division (read-only: patients rail + that patient's requests, then the selected request's trace; the Model step shows the record as stored vs as sent; the audit line is never displayed): `summarizeSteps()` (core) rolls spans into the 7 UI steps with captions built from span attributes only, so they survive payloads being off. Playback advances about one step per 0.9 s but never past the furthest step real stream events have reached. Anything that renders text goes through the mask context; a new panel must too.
 
 Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ PhiClassifier] → RiskEngine → (Block | Tokenizer → Retrieval → LlmStage → OutputAnalysis → Rehydrator) → AuditLogger.
 
@@ -84,6 +86,8 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - React effects use block bodies. Returning a value from an effect makes React call it as cleanup (newer browsers return a Promise from `scrollIntoView`).
 - Every stage gets its own test file in `tests/stages/`. Bug fixes come with a test.
 - View logic belongs in `src/lib/trace-view.ts` as pure functions with tests; components stay thin.
+- **UI follows `docs/ui-guidelines.md`** (clinical design spec; MUST rules are patient-safety rules) — see ADR 0011. In short: no text under 12px (`text-meta`), clinical data ≥ 14px (`text-data`); dates, times, doses and durations only via `src/lib/clinical-format.ts`; status is icon + word, never color alone (`components/clinical/status.tsx`, status tokens in `globals.css`); never pre-select a patient; targets ≥ 32px; rows use `h-(--row-h)` so both densities work; check 200% zoom (960px wide) and dark mode.
+- Animations use `motion/react` at 150–200ms; `MotionConfig reducedMotion="user"` is set in `Providers`.
 - Verify UI changes in a real browser (build + `next start`, then drive it), not only with unit tests. The Phase 2 and 3 UI bugs were caught that way.
 - Golden traces live in `tests/fixtures/__snapshots__`. A diff there means a stage changed its output: review it, then `npx vitest -u`.
 - Architectural decisions get an ADR in `docs/adr/` (context, decision, consequences) in the same commit; keep `docs/architecture.md` in sync.

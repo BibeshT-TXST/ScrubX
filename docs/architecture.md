@@ -44,8 +44,9 @@ src/core/      framework-free pipeline: no next/react, relative imports only (ES
   stages/      one thin class per stage; logic lives in the domain modules below
   text/ rules/ phi/ injection/ tokens/ providers/ data/
 src/server/    server-only wiring: env → config → repository + provider + Pipeline
-src/lib/       NDJSON helpers, pipeline client, in-memory store, trace-view (pure view logic)
+src/lib/       NDJSON helpers, pipeline client, in-memory store, trace-view and clinical-format (pure view logic)
 src/app/       Chat (/), Security Division (/security), API routes
+src/components/ app/ (header, ⌘K palette, providers), clinical/ (status badges, notices), chat/, security/, ui/ (shadcn)
 ```
 
 Every stage extends `Stage<I, O>` and implements `process()`. Timing, snapshots, span creation and error capture live in `Stage.run()`. Adding a stage takes one class and one line in `Pipeline`.
@@ -73,7 +74,16 @@ Pages load only the summary list. A full record is fetched by ID when needed, an
 
 1. **In-app trace:** OpenTelemetry-shaped spans (`spanId`, `parentSpanId`, timings, attributes). The three detectors share the normalizer as parent.
 2. **Structured log:** one `scrubx.audit` JSON line per request on stdout (Vercel logs). Failures log `scrubx.error` with the request ID; the client only gets a generic message.
-3. **Security Division:** read-only. Patient tabs and each patient's chat log, then for the selected request: a stage card with playback gated by real stream events, the pipeline graph, an inspector with diffs, a risk breakdown, the audit line with an in-browser PHI check, a timing waterfall, and a PHI mask.
+3. **Security Division:** read-only. A rail of patients with activity and that patient's requests, a context bar naming the patient (masked by default) and request, then for the selected request: a stage card with playback gated by real stream events (its Model step puts the patient record as stored next to the record as sent to the model), an inspector with diffs and per-stage timings, the pipeline graph with the risk breakdown beneath it, and a PHI mask. The audit line goes to the log only (ADR 0012).
+
+## User interface
+
+[docs/ui-guidelines.md](ui-guidelines.md) is the design spec for every screen; [ADR 0011](adr/0011-clinical-ui-guidelines.md) records how it is applied and what the data model can't support yet.
+
+- **Chat:** worklist with search (name, DOB, MRN on every row; nothing pre-selected; ⌘K focuses the search) → fixed patient banner (two identifiers, age, sex) → record and conversation side by side, or behind a two-button switch below `xl` (200% zoom).
+- **Formatting:** dates, times, ages, doses, Tall Man lettering and durations come only from `src/lib/clinical-format.ts`.
+- **Status:** allowed / flagged / blocked / couldn't connect always pair an icon with a word (`components/clinical/status.tsx`).
+- **State:** selected patient and per-patient drafts are in the in-memory chat store. Theme and density are the only values in `localStorage`.
 
 ## Configuration
 

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/app/PageSkeleton";
 import { ChatView } from "@/components/chat/ChatView";
 import { scrubx } from "@/server/scrubx";
 
@@ -8,7 +9,7 @@ export default function Home() {
   return (
     // A real patient source is request-time I/O, so it streams behind Suspense
     // (never `use cache`: patient data does not belong in a shared cache).
-    <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Loading patients…</p>}>
+    <Suspense fallback={<PageSkeleton label="Loading patients" />}>
       <Chat />
     </Suspense>
   );
@@ -16,5 +17,5 @@ export default function Home() {
 
 async function Chat() {
   const { patients, config } = scrubx();
-  return <ChatView patients={await patients.list()} modelConnected={!!config.llm.apiKey} />;
+  return <ChatView patients={await patients.list()} modelConnected={!!config.llm.apiKey} source={config.patientSource} />;
 }

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/app/PageSkeleton";
 import { SecurityView } from "@/components/security/SecurityView";
 import { scrubx } from "@/server/scrubx";
 
@@ -6,7 +7,7 @@ import { scrubx } from "@/server/scrubx";
 // Chat in this browser session. Nothing can be sent from here.
 export default function SecurityPage() {
   return (
-    <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Loading…</p>}>
+    <Suspense fallback={<PageSkeleton label="Loading the Security Division" />}>
       <Security />
     </Suspense>
   );

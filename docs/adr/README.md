@@ -14,3 +14,5 @@ One file per decision: the context, what was decided, and what it costs. New dec
 | [0008](0008-gemini-over-rest.md) | Gemini over REST with retries and a fallback model |
 | [0009](0009-supabase-over-postgrest.md) | Supabase over PostgREST, read-only, deny-all RLS |
 | [0010](0010-single-role-real-model-observation-only.md) | One role, always a real model, observation-only Security Division |
+| [0011](0011-clinical-ui-guidelines.md) | Clinical UI guidelines as the design spec |
+| [0012](0012-show-the-record-scrub.md) | Show how the record is scrubbed; keep the audit line out of the UI |

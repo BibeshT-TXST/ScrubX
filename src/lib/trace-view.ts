@@ -1,3 +1,4 @@
+import { diffWordsWithSpace } from "diff";
 import { findingsToLabels, resolveLabels } from "@/core/phi/labels";
 import type { StageName, StageSpan, Step } from "@/core/pipeline/events";
 import { MODEL_UNAVAILABLE } from "@/core/providers/LLMProvider";
@@ -186,6 +187,65 @@ export function stepBody(step: Step, spans: readonly StageSpan[]): StepBody {
       return { label, segments: restoreSegments(text, tokenMap(spans)) };
     }
   }
+}
+
+/** How the patient record was scrubbed on its way to the model: as stored, and as sent. */
+export interface RecordView {
+  /** The role-filtered record before scrubbing, with the markup and hidden characters marked. */
+  stored: StepBody;
+  /** What the model received: tokens and quarantined sentences marked. */
+  sent: StepBody;
+  /** Record fields the role policy kept back (names only). */
+  withheld: string[];
+  quarantined: number;
+}
+
+/** Undefined until Retrieval runs, and when it was skipped: a blocked request sends no record. */
+export function recordView(spans: readonly StageSpan[]): RecordView | undefined {
+  const r = spanOf(spans, "Retrieval");
+  if (!r || r.status === "skipped") return undefined;
+  return {
+    stored: body(r, r.input?.text, rawMarks, "As stored, role-filtered"),
+    sent: body(r, r.output?.text, tokenMarks, "Sent to the AI"),
+    withheld: String(r.attributes.withheld ?? "").split(",").filter(Boolean),
+    quarantined: Number(r.attributes.quarantined ?? 0),
+  };
+}
+
+export interface DiffPart {
+  value: string;
+  kind: "same" | "removed" | "added";
+}
+
+/**
+ * Word diff that reads as replacements. A raw word diff matches stray ":" or spaces
+ * between a quarantined sentence and its marker and interleaves them word by word;
+ * here one-character glue inside a change joins the change, and each change shows
+ * everything removed, then everything added.
+ */
+export function readableDiff(before: string, after: string): DiffPart[] {
+  const parts = diffWordsWithSpace(before, after);
+  const out: DiffPart[] = [];
+  let removed = "";
+  let added = "";
+  const flush = () => {
+    if (removed) out.push({ value: removed, kind: "removed" });
+    if (added) out.push({ value: added, kind: "added" });
+    removed = added = "";
+  };
+  parts.forEach((p, i) => {
+    if (p.removed) removed += p.value;
+    else if (p.added) added += p.value;
+    else if ((removed || added) && p.value.trim().length <= 1 && (parts[i + 1]?.added || parts[i + 1]?.removed)) {
+      removed += p.value;
+      added += p.value;
+    } else {
+      flush();
+      out.push({ value: p.value, kind: "same" });
+    }
+  });
+  flush();
+  return out;
 }
 
 export function decisionOf(spans: readonly StageSpan[]): Decision | undefined {
