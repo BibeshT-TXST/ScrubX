@@ -76,7 +76,3 @@ The model can still reason about the patient. It just never learns who she is.
 
 - **[Run ScrubX on its own](docs/running-scrubx.md):** local setup, Supabase, Vercel, configuration and the API.
 - **[Decisions](docs/decisions/):** why ScrubX is built the way it is, each with the files it lives in and a real example.
-
-## License
-
-[MIT](LICENSE)
