@@ -12,9 +12,17 @@ SightX grades retinal images with a ResNet-50 model, and keeps practitioners, cl
 
 That conversation is where the risk is, so ScrubX sits in the middle. The record from the database, the model's prediction and the clinician's question all pass through ScrubX before Bedrock sees any of it. The answer comes back through ScrubX before the clinician sees it.
 
-![ScrubX system architecture](./docs/ScrubX.png)
+![ScrubX as a module inside the SightX backend, between Supabase, the inference engine and AWS Bedrock](./docs/SightX_integration.png)
 
-The pipeline core is plain TypeScript with no framework, so SightX's Node/Express gateway can import it directly. Authentication and roles stay with SightX, and ScrubX trusts the role it's handed.
+Following one question through the diagram (dashed lines are planned):
+
+1. The **frontend** sends the retinal images and the clinician's question to the **Express API gateway**.
+2. The gateway checks the session and clinical role against **Supabase Auth**, then gets the DR grade from the **inference engine**.
+3. The record, the prediction and the question go into the **ScrubX module**. ScrubX sanitizes and tokenizes them, and keeps the real values in its **token vault**.
+4. Only the **tokenized prompt** reaches **Bedrock**, through ScrubX's LLM provider interface. Bedrock never sees PHI.
+5. The **tokenized answer** comes back. ScrubX checks it, restores the real values, and the frontend shows the answer with real names.
+
+The pipeline core is plain TypeScript with no framework, so the Express gateway imports it directly. Authentication and roles stay with SightX, and ScrubX trusts the role it's handed.
 
 ## Why it exists
 
@@ -28,7 +36,15 @@ ScrubX addresses all three on every request, before and after the model call.
 
 ## What it does
 
-Every request runs the same seven steps:
+On its own, today: patient records come from Supabase, the clinician uses the Next.js app on Vercel, and the AI model is Gemini.
+
+![The ScrubX gateway: scan for attacks and PHI, decide, swap names for tokens, call the model, check the answer, put the real names back](./docs/ScrubX.png)
+
+- **A request with an attack** stops at "Safe to send?" and never reaches the model.
+- **A safe request** has its identifiers swapped for tokens, with the real values held in the token vault. The answer is checked before the real names go back.
+- **Every step is recorded**, with no PHI. The audit line goes to the server log today, since ScrubX keeps no state. Storing it in Supabase is planned.
+
+Inside the gateway, every request runs the same seven steps:
 
 | Step | What happens |
 |---|---|
