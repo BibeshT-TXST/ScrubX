@@ -21,4 +21,12 @@ Open `/` for the Chat View (pick a demo patient and a role, then ask a question)
 - `POST /api/pipeline`: `{ "patientId": "pt-001", "role": "physician", "message": "...", "history": [] }`. Streams NDJSON: one line per pipeline stage, then the final result with the response, trace and PHI-free audit event.
 - `GET /api/patients` and `GET /api/patients/:id`: synthetic demo patients.
 
-Runs with zero configuration: mock LLM, synthetic demo patients. See `.env.example` for optional settings. The pipeline core in `src/core` is framework-free so a host project can import it directly.
+Runs with zero configuration: mock LLM, synthetic demo patients. To use Gemini, add to `.env.local`:
+
+```bash
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=...
+# optional: LLM_MODEL (default gemini-3.8-flash), LLM_FALLBACK_MODEL (default gemini-3.5-flash-lite)
+```
+
+See `.env.example` for every setting, [docs/architecture.md](docs/architecture.md) for how the pipeline works, and [docs/adr/](docs/adr) for the decisions behind it. The pipeline core in `src/core` is framework-free so a host project can import it directly.

@@ -2,7 +2,7 @@ import { MEDICATIONS } from "../phi/dictionaries";
 import { detectPhi } from "../phi/classify";
 import { Stage, type SpanDetails, type StageContext } from "../pipeline/Stage";
 import type { TokenVault } from "../tokens/TokenVault";
-import { REDACTED, TOKEN_PATTERN } from "../tokens/tokenize";
+import { REDACTED, repairTokens, TOKEN_PATTERN } from "../tokens/tokenize";
 import type { PatientContext, PhiType } from "../types";
 import { plural } from "./format";
 
@@ -21,6 +21,8 @@ export interface OutputVerdict {
   leaks: { type: PhiType; start: number; end: number }[];
   unknownTokens: string[];
   ungrounded: { kind: "number" | "medication"; text: string }[];
+  /** Placeholders the model mangled ("[PATIENT 1]") that were restored to a known token. */
+  repairedTokens: number;
   linksRemoved: number;
   strict: boolean;
 }
@@ -43,8 +45,9 @@ export class OutputAnalysis extends Stage<OutputInput, OutputVerdict> {
   readonly step = "model" as const;
 
   protected async process(input: OutputInput, ctx: StageContext): Promise<OutputVerdict> {
+    const repair = repairTokens(input.completion, input.vault);
     const unknownTokens: string[] = [];
-    let text = input.completion.replace(TOKEN_PATTERN, (t) => {
+    let text = repair.text.replace(TOKEN_PATTERN, (t) => {
       if (input.vault.resolve(t) !== undefined) return t;
       unknownTokens.push(t);
       return REDACTED;
@@ -77,7 +80,7 @@ export class OutputAnalysis extends Stage<OutputInput, OutputVerdict> {
         .map((m) => ({ kind: "medication" as const, text: m })),
     ];
 
-    return { text, leaks, unknownTokens, ungrounded, linksRemoved, strict: input.strict };
+    return { text, leaks, unknownTokens, ungrounded, repairedTokens: repair.repaired, linksRemoved, strict: input.strict };
   }
 
   protected override snapshotInput(input: OutputInput) {
@@ -85,7 +88,10 @@ export class OutputAnalysis extends Stage<OutputInput, OutputVerdict> {
   }
 
   protected override snapshotOutput(v: OutputVerdict) {
-    return { text: v.text, data: { leaks: v.leaks, unknownTokens: v.unknownTokens, ungrounded: v.ungrounded } };
+    return {
+      text: v.text,
+      data: { leaks: v.leaks, unknownTokens: v.unknownTokens, ungrounded: v.ungrounded, repairedTokens: v.repairedTokens },
+    };
   }
 
   protected override describe(_in: OutputInput, v: OutputVerdict): SpanDetails {
@@ -94,6 +100,7 @@ export class OutputAnalysis extends Stage<OutputInput, OutputVerdict> {
       v.unknownTokens.length && `${plural(v.unknownTokens.length, "unknown token")} stripped`,
       v.ungrounded.length && `${plural(v.ungrounded.length, "ungrounded claim")} flagged`,
       v.linksRemoved && `${plural(v.linksRemoved, "link")} removed`,
+      v.repairedTokens && `${plural(v.repairedTokens, "mangled token")} repaired`,
     ].filter(Boolean);
     return {
       caption: issues.length
@@ -105,6 +112,7 @@ export class OutputAnalysis extends Stage<OutputInput, OutputVerdict> {
         unknownTokens: v.unknownTokens.length,
         ungrounded: v.ungrounded.length,
         linksRemoved: v.linksRemoved,
+        repairedTokens: v.repairedTokens,
       },
     };
   }

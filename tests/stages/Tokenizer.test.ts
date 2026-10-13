@@ -4,7 +4,7 @@ import { detectPhi } from "@/core/phi/classify";
 import { Rehydrator } from "@/core/stages/Rehydrator";
 import { Tokenizer } from "@/core/stages/Tokenizer";
 import { TokenVault } from "@/core/tokens/TokenVault";
-import { DEFAULT_ENTITY_POLICY, rehydrateText, tokenizeText } from "@/core/tokens/tokenize";
+import { DEFAULT_ENTITY_POLICY, rehydrateText, repairTokens, tokenizeText } from "@/core/tokens/tokenize";
 import { ctx, NOW, patient } from "../helpers";
 
 async function tokenize(text: string, policy = DEFAULT_ENTITY_POLICY) {
@@ -84,5 +84,26 @@ describe("Tokenizer and Rehydrator stages", () => {
 
     const restored = await new Rehydrator().run({ text: output.text, vault: output.vault }, ctx());
     expect(restored.output.text).toBe("Maria Lopez");
+  });
+});
+
+describe("repairTokens", () => {
+  const vault = () => {
+    const v = new TokenVault();
+    v.tokenFor("PATIENT", "Maria Lopez");
+    v.tokenFor("DATE", "03/14/2026");
+    return v;
+  };
+
+  it("restores mangled placeholders to tokens the vault issued", () => {
+    expect(repairTokens("[PATIENT 1] on [date_1], [ PATIENT-1 ] and PATIENT_1 and [PATIENT_1", vault())).toEqual({
+      text: "[PATIENT_1] on [DATE_1], [PATIENT_1] and [PATIENT_1] and [PATIENT_1]",
+      repaired: 5,
+    });
+  });
+
+  it("leaves canonical tokens, unknown tokens and ordinary words alone", () => {
+    const text = "[PATIENT_1] saw [PATIENT 9]; date 2 of therapy, age 58, Patient_1 notes.";
+    expect(repairTokens(text, vault())).toEqual({ text, repaired: 0 });
   });
 });

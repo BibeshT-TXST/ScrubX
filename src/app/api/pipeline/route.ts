@@ -3,8 +3,8 @@ import { ChatTurnSchema } from "@/core";
 import { NDJSON_CONTENT_TYPE, toNdjson, type StreamEvent } from "@/lib/ndjson";
 import { scrubx } from "@/server/scrubx";
 
-// Mock runs finish in under a second; this leaves headroom for a real model (Phase 4).
-export const maxDuration = 30;
+// Covers the Gemini provider's 50 s retry budget (3 attempts with backoff) plus pipeline overhead.
+export const maxDuration = 60;
 
 // The client names a patient; the record itself is resolved here, server-side.
 const BodySchema = z.object({

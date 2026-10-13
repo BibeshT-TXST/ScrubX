@@ -63,6 +63,28 @@ export function tokenizeText(
   return { text: out + text.slice(cursor), entities };
 }
 
+const TYPES = PHI_TYPES.join("|");
+// "[PATIENT 1]", "[patient_1]", "[ PATIENT-1 ]": bracketed, any case and separator.
+const BRACKETED = new RegExp(`\\[\\s*(${TYPES})[\\s_-]*(\\d+)\\s*\\]`, "gi");
+// "PATIENT_1", "[PATIENT_1", "PATIENT_1]": the exact shape with a bracket lost. Uppercase only,
+// so ordinary words like "date 2" or "age 58" never match.
+const HALF_BRACKETED = new RegExp(`\\[?\\b(${TYPES})_(\\d+)\\b\\]?`, "g");
+
+/**
+ * Restores placeholders a model mangled, but only into tokens the vault actually
+ * issued. Anything else is left for OutputAnalysis to judge.
+ */
+export function repairTokens(text: string, vault: TokenVault): { text: string; repaired: number } {
+  let repaired = 0;
+  const fix = (match: string, type: string, n: string) => {
+    const token = `[${type.toUpperCase()}_${n}]`;
+    if (match === token || vault.resolve(token) === undefined) return match;
+    repaired++;
+    return token;
+  };
+  return { text: text.replace(BRACKETED, fix).replace(HALF_BRACKETED, fix), repaired };
+}
+
 /** Swaps known tokens back to their values. Unknown tokens are left as-is (OutputAnalysis strips them first). */
 export function rehydrateText(text: string, vault: TokenVault): { text: string; count: number } {
   let count = 0;

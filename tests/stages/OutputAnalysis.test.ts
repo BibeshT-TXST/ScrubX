@@ -55,3 +55,13 @@ describe("OutputAnalysis", () => {
     expect(strict.linksRemoved).toBe(1);
   });
 });
+
+describe("OutputAnalysis token repair", () => {
+  it("repairs mangled tokens before checking for unknown ones", async () => {
+    const v = await analyze("[PATIENT 1] is stable; patient_1 lowercase stays.");
+    expect(v.text).toBe("[PATIENT_1] is stable; patient_1 lowercase stays.");
+    expect(v.repairedTokens).toBe(1);
+    expect(v.unknownTokens).toEqual([]);
+    expect(v.span.caption).toBe("Answer checked for leaks: 1 mangled token repaired.");
+  });
+});

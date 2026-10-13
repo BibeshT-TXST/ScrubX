@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
+import { GEMINI_DEFAULT_MODEL } from "@/core";
+import { scrubx } from "@/server/scrubx";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,10 +21,12 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const { llm } = scrubx().config;
+  const model = llm.provider === "mock" ? "mock model" : `${llm.provider} · ${llm.model ?? GEMINI_DEFAULT_MODEL}`;
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex h-dvh flex-col overflow-hidden">
-        <SiteHeader />
+        <SiteHeader model={model} />
         {children}
       </body>
     </html>

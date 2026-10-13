@@ -5,7 +5,7 @@ import { DEFAULT_ENTITY_POLICY } from "@/core/tokens/tokenize";
 describe("loadConfig", () => {
   it("defaults to a keyless mock demo; payloads are on only because the data is synthetic", () => {
     expect(loadConfig({})).toEqual({
-      llm: { provider: "mock", model: undefined, apiKey: undefined, mockLatencyMs: 500 },
+      llm: { provider: "mock", model: undefined, fallbackModel: undefined, apiKey: undefined, mockLatencyMs: 500 },
       patientSource: "demo",
       tracePayloads: true,
       risk: { blockThreshold: 0.8, flagThreshold: 0.4 },
@@ -48,7 +48,13 @@ describe("loadConfig", () => {
   });
 
   it("requires an API key for the real provider", () => {
-    expect(() => loadConfig({ LLM_PROVIDER: "openrouter" })).toThrow(/OPENROUTER_API_KEY/);
-    expect(loadConfig({ LLM_PROVIDER: "openrouter", OPENROUTER_API_KEY: "k" }).llm.apiKey).toBe("k");
+    expect(() => loadConfig({ LLM_PROVIDER: "gemini" })).toThrow(/GEMINI_API_KEY/);
+    expect(loadConfig({ LLM_PROVIDER: "gemini", GEMINI_API_KEY: "k", LLM_MODEL: "m" }).llm).toMatchObject({
+      provider: "gemini",
+      apiKey: "k",
+      model: "m",
+    });
+    expect(loadConfig({ LLM_FALLBACK_MODEL: "none" }).llm.fallbackModel).toBeNull();
+    expect(loadConfig({ LLM_FALLBACK_MODEL: "gemini-x" }).llm.fallbackModel).toBe("gemini-x");
   });
 });

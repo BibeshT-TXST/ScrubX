@@ -53,6 +53,7 @@ const CAPTIONS: Record<Step, (s: Spans) => string> = {
       num(output, "leaks") && `${plural(num(output, "leaks"), "leak")} redacted`,
       num(output, "unknownTokens") && `${plural(num(output, "unknownTokens"), "unknown token")} stripped`,
       num(output, "ungrounded") && `${plural(num(output, "ungrounded"), "ungrounded claim")} flagged`,
+      num(output, "repairedTokens") && `${plural(num(output, "repairedTokens"), "mangled token")} repaired`,
     ].filter(Boolean);
     const around = (parts: unknown[]) => (parts.length ? ` (${parts.join(", ")})` : "");
     return `Retrieval is filtered by role${around(scope)} and the answer is checked for leaks${around(issues)}.`;

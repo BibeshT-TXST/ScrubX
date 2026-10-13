@@ -1,6 +1,7 @@
 import "server-only";
 import {
   DemoPatientRepository,
+  GeminiProvider,
   loadConfig,
   MockProvider,
   Pipeline,
@@ -19,8 +20,9 @@ function createProvider(config: ScrubXConfig): LLMProvider {
   switch (config.llm.provider) {
     case "mock":
       return new MockProvider({ latencyMs: config.llm.mockLatencyMs });
-    case "openrouter":
-      throw new Error("LLM_PROVIDER=openrouter is not available yet (Phase 4)");
+    case "gemini":
+      // loadConfig already guarantees the key is present for this provider.
+      return new GeminiProvider({ apiKey: config.llm.apiKey!, model: config.llm.model, fallbackModel: config.llm.fallbackModel });
   }
 }
 

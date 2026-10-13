@@ -33,7 +33,7 @@ src/core/         framework-free pipeline. Importable by the host without Next.j
   phi/            record-aware + dictionary classifier, label resolution, dictionaries
   injection/      InjectionScanner interface + HeuristicScanner
   tokens/         TokenVault (request-scoped, unserializable), tokenize / rehydrate, entity policy
-  providers/      LLMProvider, MockProvider, prompt template (OpenRouter in Phase 4)
+  providers/      LLMProvider, MockProvider, GeminiProvider (REST, no SDK), prompt template
   data/           PatientRepository + DemoPatientRepository (used at the API boundary)
   config.ts       zod-validated env → ScrubXConfig
   schemas.ts      zod schemas for the host boundary; types are inferred from these
@@ -81,6 +81,7 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - View logic belongs in `src/lib/trace-view.ts` as pure functions with tests; components stay thin.
 - Verify UI changes in a real browser (build + `next start`, then drive it), not only with unit tests. The Phase 2 and 3 UI bugs were caught that way.
 - Golden traces live in `tests/fixtures/__snapshots__`. A diff there means a stage changed its output: review it, then `npx vitest -u`.
+- Architectural decisions get an ADR in `docs/adr/` (context, decision, consequences) in the same commit; keep `docs/architecture.md` in sync.
 - New attack patterns go into `tests/adversarial/cases.ts` with an expected decision; add benign look-alikes too.
 
 ## Version control
@@ -117,7 +118,7 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - [x] Phase 1: Core pipeline, no UI
 - [x] Phase 2: API + Chat View
 - [x] Phase 3: Dev View
-- [ ] Phase 4: Real model + polish
+- [x] Phase 4: Real model + polish (Gemini; OTel export deferred)
 - [ ] Phase 5: Supabase
 
 Update this list in the same commit that completes a phase.

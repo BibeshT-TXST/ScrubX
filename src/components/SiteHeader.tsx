@@ -9,7 +9,7 @@ const NAV = [
   { href: "/dev", label: "Dev View" },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ model }: { model: string }) {
   const pathname = usePathname();
   return (
     <header className="flex items-center gap-6 border-b px-6 py-3">
@@ -30,7 +30,7 @@ export function SiteHeader() {
           </Link>
         ))}
       </nav>
-      <span className="ml-auto font-mono text-[11px] text-muted-foreground">synthetic demo data · mock model</span>
+      <span className="ml-auto font-mono text-[11px] text-muted-foreground">synthetic demo data · {model}</span>
     </header>
   );
 }
