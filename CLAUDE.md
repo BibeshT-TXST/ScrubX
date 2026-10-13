@@ -38,12 +38,16 @@ src/core/         framework-free pipeline. Importable by the host without Next.j
   config.ts       zod-validated env → ScrubXConfig
   schemas.ts      zod schemas for the host boundary; types are inferred from these
   types.ts        domain types (PHI labels, findings, decisions, audit, results)
-src/app/          Next.js App Router (Chat View `/`, Dev View `/dev`, API routes)
+src/server/       server-only wiring: env → config → repository + provider + Pipeline (built once)
+src/lib/          client/server shared: NDJSON stream helpers, pipeline client, in-memory chat store
+src/app/          Next.js App Router: Chat View `/`, Dev View `/dev`, `api/pipeline`, `api/patients[/id]`
 src/components/   ui/ (shadcn), chat/, dev/
 data/             patients.demo.json: synthetic only
 tests/            stages/ (one file per stage), pipeline/, adversarial/ (labeled cases),
                   fixtures/ (golden traces), invariants.test.ts
 ```
+
+API: `POST /api/pipeline` takes `{ patientId, role?, message, history? }` (zod), resolves the patient server-side and streams NDJSON: one `{type:"span"}` line per stage, then `{type:"result"}`, or `{type:"error"}` with a generic message if the run fails (details go to server logs). Honors a well-formed `x-request-id` from a host gateway.
 
 Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ PhiClassifier] → RiskEngine → (Block | Tokenizer → Retrieval → LlmStage → OutputAnalysis → Rehydrator) → AuditLogger.
 
@@ -58,7 +62,9 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - **The core never fetches patients.** `PipelineRequest.patient` is the record; the API route resolves `patientId` server-side through `PatientRepository`, so the client never sends a record.
 - **Everything bound for the LLM is sanitized**, not just the message: Retrieval normalizes the role-filtered record and client-held history, quarantines sentences that carry instructions, and tokenizes them with the same vault.
 - **Synthetic data only**, in fixtures and in tests. No real patient data, ever.
-- **Stateless.** No filesystem writes, no module-level mutable state across requests. Route handlers run on the Node.js runtime.
+- **Stateless.** No filesystem writes, no module-level mutable state across requests (the `scrubx()` singleton is immutable wiring). Route handlers use Next 16's default Node runtime; don't add `runtime = "edge"` (deprecated).
+- **Server-only code imports `server-only`** (`src/server/*`), so the repository and pipeline wiring can never be bundled into the client.
+- **Client chat state is in memory only** (`src/lib/chat-store.ts`): it survives navigation between Chat and Dev View but not a refresh. No PHI in localStorage or sessionStorage.
 - Captions shown in the UI are generated from trace data, never hardcoded per request.
 
 ## Code style
@@ -67,6 +73,7 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 - Keep it lean: no speculative abstractions, no dead code, no comments that restate the code. Comment the *why* when it isn't obvious (security choices, HIPAA reasoning, ordering constraints).
 - Prefer pure functions and dependency injection (clock, provider, repository) so stages test deterministically.
 - Rules and thresholds are data/config, not branches in code.
+- React effects use block bodies. Returning a value from an effect makes React call it as cleanup (newer browsers return a Promise from `scrollIntoView`).
 - Every stage gets its own test file in `tests/stages/`. Bug fixes come with a test.
 - Golden traces live in `tests/fixtures/__snapshots__`. A diff there means a stage changed its output: review it, then `npx vitest -u`.
 - New attack patterns go into `tests/adversarial/cases.ts` with an expected decision; add benign look-alikes too.
@@ -103,7 +110,7 @@ Stage order: Receive → InputNormalizer → [RegexRules ‖ SemanticScan ‖ Ph
 
 - [x] Phase 0: Skeleton (Vercel deploy is done by the user from the dashboard)
 - [x] Phase 1: Core pipeline, no UI
-- [ ] Phase 2: API + Chat View
+- [x] Phase 2: API + Chat View
 - [ ] Phase 3: Dev View
 - [ ] Phase 4: Real model + polish
 - [ ] Phase 5: Supabase

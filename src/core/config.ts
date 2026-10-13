@@ -14,6 +14,8 @@ const EnvSchema = z
     LLM_PROVIDER: z.enum(["mock", "openrouter"]).default("mock"),
     LLM_MODEL: z.string().optional(),
     OPENROUTER_API_KEY: z.string().optional(),
+    // Simulated model latency for the mock, so the streamed trace is visible in the UI.
+    MOCK_LATENCY_MS: z.coerce.number().int().min(0).max(10_000).default(500),
     PATIENT_SOURCE: z.enum(["demo", "supabase"]).default("demo"),
     // Off by default: snapshots contain PHI. Only the synthetic demo turns it on.
     SCRUBX_TRACE_PAYLOADS: flag(false),
@@ -28,7 +30,7 @@ const EnvSchema = z
   });
 
 export interface ScrubXConfig {
-  llm: { provider: "mock" | "openrouter"; model?: string; apiKey?: string };
+  llm: { provider: "mock" | "openrouter"; model?: string; apiKey?: string; mockLatencyMs: number };
   patientSource: "demo" | "supabase";
   tracePayloads: boolean;
   risk: { blockThreshold: number; flagThreshold: number };
@@ -41,7 +43,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   const set = Object.fromEntries(Object.entries(env).filter(([, v]) => v !== ""));
   const e = EnvSchema.parse(set);
   return {
-    llm: { provider: e.LLM_PROVIDER, model: e.LLM_MODEL, apiKey: e.OPENROUTER_API_KEY },
+    llm: { provider: e.LLM_PROVIDER, model: e.LLM_MODEL, apiKey: e.OPENROUTER_API_KEY, mockLatencyMs: e.MOCK_LATENCY_MS },
     patientSource: e.PATIENT_SOURCE,
     tracePayloads: e.SCRUBX_TRACE_PAYLOADS,
     risk: { blockThreshold: e.RISK_BLOCK_THRESHOLD, flagThreshold: e.RISK_FLAG_THRESHOLD },

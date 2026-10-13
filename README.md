@@ -14,4 +14,11 @@ npm run dev      # http://localhost:3000
 npm run check    # typecheck + lint + tests
 ```
 
+Open `/` for the Chat View (pick a demo patient and a role, then ask a question) and `/dev` for the trace of each answer.
+
+### API
+
+- `POST /api/pipeline`: `{ "patientId": "pt-001", "role": "physician", "message": "...", "history": [] }`. Streams NDJSON: one line per pipeline stage, then the final result with the response, trace and PHI-free audit event.
+- `GET /api/patients` and `GET /api/patients/:id`: synthetic demo patients.
+
 Runs with zero configuration: mock LLM, synthetic demo patients. See `.env.example` for optional settings. The pipeline core in `src/core` is framework-free so a host project can import it directly.

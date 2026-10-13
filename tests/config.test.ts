@@ -5,7 +5,7 @@ import { DEFAULT_ENTITY_POLICY } from "@/core/tokens/tokenize";
 describe("loadConfig", () => {
   it("defaults to a keyless mock demo with trace payloads off", () => {
     expect(loadConfig({})).toEqual({
-      llm: { provider: "mock", model: undefined, apiKey: undefined },
+      llm: { provider: "mock", model: undefined, apiKey: undefined, mockLatencyMs: 500 },
       patientSource: "demo",
       tracePayloads: false,
       risk: { blockThreshold: 0.8, flagThreshold: 0.4 },
