@@ -34,4 +34,4 @@ To read patients from Supabase instead of the bundled demo data:
 2. Add `PATIENT_SOURCE=supabase`, `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to `.env.local`.
 3. `npm run db:seed` loads the 8 synthetic patients (`-- --dry-run` to preview).
 
-See `.env.example` for every setting, [docs/architecture.md](docs/architecture.md) for how the pipeline works, and [docs/adr/](docs/adr) for the decisions behind it. The pipeline core in `src/core` is framework-free so a host project can import it directly.
+See `.env.example` for every setting and [docs/decisions/](docs/decisions) for why ScrubX is built the way it is: each decision names the files it lives in and walks through an example. The pipeline core in `src/core` is framework-free so a host project can import it directly.

@@ -43,3 +43,8 @@ next-env.d.ts
 
 # local planning doc (kept out of the repo on purpose)
 ScrubX-plan.md
+
+# local-only docs: agent instructions and the UI guidelines are not shared
+CLAUDE.md
+AGENTS.md
+docs/ui-guidelines.md
