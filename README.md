@@ -7,8 +7,8 @@ ScrubX sits between a clinician and a large language model. It strips out everyt
 **[Try the live demo →](https://scrub-x-ivory.vercel.app)** No sign-up. Every patient is made up.
 
 ```
-clinician asks: Patient MARIA LOPEZ, age 58, seen 03/14/2026. MRN-100231. Should we adjust metformin?
-model receives: Patient [PATIENT_1], age [AGE_1], seen [DATE_1]. [MRN_1]. Should we adjust metformin?
+clinician asks: Patient MARIA LOPEZ, seen 03/14/2026. MRN-100231. Should we adjust metformin?
+model receives: Patient [PATIENT_1], seen [DATE_1]. [MRN_1]. Should we adjust metformin?
 ```
 
 ## Why I built this
