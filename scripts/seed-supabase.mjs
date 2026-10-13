@@ -32,11 +32,14 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   process.exit(1);
 }
 
-const res = await fetch(`${SUPABASE_URL.replace(/\/+$/, "")}/rest/v1/patients?on_conflict=id`, {
+// Accept the project URL with or without the "/rest/v1/" suffix the dashboard also shows.
+const base = SUPABASE_URL.replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
+const res = await fetch(`${base}/rest/v1/patients?on_conflict=id`, {
   method: "POST",
   headers: {
+    // Secret keys (sb_secret_…) go in apikey only; legacy service_role JWTs also as Bearer.
     apikey: SUPABASE_SERVICE_ROLE_KEY,
-    authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    ...(!SUPABASE_SERVICE_ROLE_KEY.startsWith("sb_") && { authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` }),
     "content-type": "application/json",
     prefer: "resolution=merge-duplicates,return=minimal",
   },

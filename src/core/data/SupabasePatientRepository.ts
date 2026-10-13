@@ -4,7 +4,10 @@ import type { PatientRepository } from "./PatientRepository";
 
 export interface SupabaseOptions {
   url: string;
-  /** Server-side only. Bypasses RLS, which denies every other role (see supabase/migrations). */
+  /**
+   * Server-side only. A secret key (sb_secret_…) or the legacy service_role JWT.
+   * Bypasses RLS, which denies every other role (see supabase/migrations).
+   */
   serviceRoleKey: string;
   timeoutMs?: number;
   /** Injectable for tests. */
@@ -12,6 +15,19 @@ export interface SupabaseOptions {
 }
 
 const TABLE = "patients";
+
+/**
+ * New-style keys (sb_secret_…) are not JWTs and must go in the apikey header only;
+ * sent as a Bearer token they fail JWT verification. Legacy JWT keys get both headers.
+ */
+export function supabaseAuthHeaders(key: string): Record<string, string> {
+  return key.startsWith("sb_") ? { apikey: key } : { apikey: key, authorization: `Bearer ${key}` };
+}
+
+/** Accepts the project URL with or without the REST path the dashboard also shows ("…/rest/v1/"). */
+export function supabaseBaseUrl(url: string): string {
+  return url.replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
+}
 
 // Rows are validated like any other input: a malformed record never reaches the pipeline.
 const RowSchema = z.object({
@@ -66,17 +82,13 @@ export class SupabasePatientRepository implements PatientRepository {
   private readonly base: string;
 
   constructor(private readonly opts: SupabaseOptions) {
-    this.base = `${opts.url.replace(/\/+$/, "")}/rest/v1/${TABLE}`;
+    this.base = `${supabaseBaseUrl(opts.url)}/rest/v1/${TABLE}`;
   }
 
   private async query(params: string): Promise<unknown> {
     const res = await (this.opts.fetch ?? fetch)(`${this.base}?${params}`, {
       method: "GET",
-      headers: {
-        apikey: this.opts.serviceRoleKey,
-        authorization: `Bearer ${this.opts.serviceRoleKey}`,
-        accept: "application/json",
-      },
+      headers: { ...supabaseAuthHeaders(this.opts.serviceRoleKey), accept: "application/json" },
       signal: AbortSignal.timeout(this.opts.timeoutMs ?? 10_000),
       cache: "no-store",
     });

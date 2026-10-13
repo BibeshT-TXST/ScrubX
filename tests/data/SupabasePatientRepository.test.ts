@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { RepositoryError, SupabasePatientRepository } from "@/core/data/SupabasePatientRepository";
+import {
+  RepositoryError,
+  supabaseAuthHeaders,
+  supabaseBaseUrl,
+  SupabasePatientRepository,
+} from "@/core/data/SupabasePatientRepository";
 import demoPatients from "../../data/patients.demo.json";
 
 // What PostgREST returns for a row of the migration's `patients` table.
@@ -37,6 +42,21 @@ describe("SupabasePatientRepository", () => {
     expect(url).toBe("https://abc.supabase.co/rest/v1/patients?select=id,name,summary&order=id.asc");
     expect(init.method).toBe("GET");
     expect(init.headers).toMatchObject({ apikey: "service-key", authorization: "Bearer service-key" });
+  });
+
+  it("sends new secret keys in apikey only, and legacy JWT keys as Bearer too", async () => {
+    expect(supabaseAuthHeaders("sb_secret_abc")).toEqual({ apikey: "sb_secret_abc" });
+    expect(supabaseAuthHeaders("eyJhbGciOi.legacy.jwt")).toEqual({ apikey: "eyJhbGciOi.legacy.jwt", authorization: "Bearer eyJhbGciOi.legacy.jwt" });
+
+    const { impl, calls } = fakeFetch(200, []);
+    await new SupabasePatientRepository({ url: "https://abc.supabase.co", serviceRoleKey: "sb_secret_abc", fetch: impl }).list();
+    expect(calls[0]!.init.headers).not.toHaveProperty("authorization");
+  });
+
+  it("accepts the project URL with or without the REST path", () => {
+    for (const url of ["https://abc.supabase.co", "https://abc.supabase.co/", "https://abc.supabase.co/rest/v1", "https://abc.supabase.co/rest/v1/"]) {
+      expect(supabaseBaseUrl(url)).toBe("https://abc.supabase.co");
+    }
   });
 
   it("maps a row to a PatientContext, dropping empty optional fields", async () => {
