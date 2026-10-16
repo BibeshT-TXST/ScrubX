@@ -86,7 +86,7 @@ SightX keeps login and roles, and ScrubX trusts the role it gets. The pipeline i
 
 ## Citations
 
-What ScrubX's PHI detection and its tests are built on. [Decision 13](docs/decisions/13-find-identifiers-the-detector-was-not-told-about.md) and [decision 14](docs/decisions/14-same-surname-is-not-the-patient.md) say which change each one informed.
+What ScrubX's PHI detection and its tests are built on. [Decision 13](docs/decisions/13-find-identifiers-the-detector-was-not-told-about.md) and [Decision 14](docs/decisions/14-same-surname-is-not-the-patient.md) say which change each one informed.
 
 1. U.S. Code of Federal Regulations. *45 CFR § 164.514(b)(2), HIPAA Safe Harbor de-identification standard.* https://www.law.cornell.edu/cfr/text/45/164.514
 2. Xiao, Y., Lim, S., Pollard, T. J., & Ghassemi, M. (2023). *In the Name of Fairness: Assessing the Bias in Clinical Record De-identification.* FAccT '23. https://doi.org/10.1145/3593013.3593982 · https://arxiv.org/abs/2305.11348
