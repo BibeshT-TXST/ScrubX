@@ -86,7 +86,7 @@ SightX keeps login and roles, and ScrubX trusts the role it gets. The pipeline i
 
 ## Citations
 
-What ScrubX's PHI detection and its tests are built on. [Decision 13](docs/decisions/13-find-identifiers-the-detector-was-not-told-about.md) says which change each one informed.
+What ScrubX's PHI detection and its tests are built on. [Decision 13](docs/decisions/13-find-identifiers-the-detector-was-not-told-about.md) and [decision 14](docs/decisions/14-same-surname-is-not-the-patient.md) say which change each one informed.
 
 1. U.S. Code of Federal Regulations. *45 CFR § 164.514(b)(2), HIPAA Safe Harbor de-identification standard.* https://www.law.cornell.edu/cfr/text/45/164.514
 2. Xiao, Y., Lim, S., Pollard, T. J., & Ghassemi, M. (2023). *In the Name of Fairness: Assessing the Bias in Clinical Record De-identification.* FAccT '23. https://doi.org/10.1145/3593013.3593982 · https://arxiv.org/abs/2305.11348
@@ -96,6 +96,15 @@ What ScrubX's PHI detection and its tests are built on. [Decision 13](docs/decis
 6. MDN Web Docs. *Unicode character class escape: `\p{...}`.* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Unicode_character_class_escape
 7. LangChain. *Multi-language data anonymization with Microsoft Presidio.* https://python.langchain.com/docs/guides/privacy/presidio_data_anonymization/multi_language
 8. Vitest. *API reference: `test.fails`.* https://vitest.dev/api/#test-fails
+9. Dehghan, A., et al. (2015). *Combining knowledge- and data-driven methods for de-identification of clinical narratives.* Journal of Biomedical Informatics, 58(Suppl). https://doi.org/10.1016/j.jbi.2015.06.029 · https://pmc.ncbi.nlm.nih.gov/articles/PMC4976126/
+10. Yang, H., & Garibaldi, J. M. (2015). *Automatic detection of protected health information from clinic narratives.* Journal of Biomedical Informatics, 58(Suppl). https://doi.org/10.1016/j.jbi.2015.06.015 · https://pmc.ncbi.nlm.nih.gov/articles/PMC4989090/
+11. Xu, Y., et al. (2012). *A classification approach to coreference in discharge summaries: 2011 i2b2 challenge.* Journal of the American Medical Informatics Association, 19(5), 897–905. https://pmc.ncbi.nlm.nih.gov/articles/PMC3422828/
+12. Uzuner, Ö., Luo, Y., & Szolovits, P. (2007). *Evaluating the state-of-the-art in automatic de-identification.* Journal of the American Medical Informatics Association, 14(5). https://doi.org/10.1197/jamia.M2444 · https://pmc.ncbi.nlm.nih.gov/articles/PMC1975792/
+13. Stubbs, A., Kotfila, C., & Uzuner, Ö. (2015). *Automated systems for the de-identification of longitudinal clinical narratives: Overview of 2014 i2b2/UTHealth shared task Track 1.* Journal of Biomedical Informatics, 58(Suppl). https://doi.org/10.1016/j.jbi.2015.06.007 · https://pmc.ncbi.nlm.nih.gov/articles/PMC4989908/
+14. Neamatullah, I., et al. (2008). *Automated de-identification of free-text medical records.* BMC Medical Informatics and Decision Making, 8, 32. https://pmc.ncbi.nlm.nih.gov/articles/PMC2526997/ · source: https://physionet.org/files/deid/1.1/deid.pl
+15. Raghunathan, K., et al. (2010). *A multi-pass sieve for coreference resolution.* EMNLP 2010. https://aclanthology.org/D10-1048.pdf
+16. Lee, H., et al. (2013). *Deterministic coreference resolution based on entity-centric, precision-ranked rules.* Computational Linguistics, 39(4). https://aclanthology.org/J13-4004.pdf
+17. Sweeney, L. (1996). *Replacing personally-identifying information in medical records, the Scrub system.* Proceedings of the AMIA Annual Fall Symposium, 333–337. https://dataprivacylab.org/projects/scrub/paper1.pdf
 
 ---
 

@@ -29,7 +29,7 @@ const CUES: [RegExp, number][] = [
 
 // Capitalized words that are not names on their own. Any match made only of these is dropped,
 // and a capitalized pair that includes one is not treated as a name.
-const NOT_NAMES = new Set([
+export const NOT_NAMES = new Set([
   "i", "he", "she", "they", "we", "you", "it", "her", "his", "their", "our", "my", "the", "this", "that",
   "a", "an", "someone", "nobody", "everyone", "patient", "pt", "doctor", "nurse", "provider", "pharmacy",
   "pharmacist", "clinic", "hospital", "office", "team", "staff", "family", "insurance", "lab", "labs",
@@ -37,7 +37,7 @@ const NOT_NAMES = new Set([
   ...RELATIONS,
 ]);
 
-const CLINICAL = new Set([
+export const CLINICAL = new Set([
   "disease", "syndrome", "disorder", "failure", "chronic", "acute", "type", "stage", "blood", "pressure",
   "heart", "kidney", "renal", "liver", "lung", "diabetes", "therapy", "physical", "occupational", "emergency",
   "department", "room", "unit", "care", "center", "centre", "medical", "health", "medicine", "internal",

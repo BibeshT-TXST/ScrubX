@@ -26,6 +26,7 @@ export const COMMON_WORD_NAMES = new Set(
 );
 
 export const TITLES = "(?:Dr|Mr|Mrs|Ms|Miss|Mx)\\.?";
+export const CLINICIAN_TITLES = "(?:Dr|Drs|Doctor)\\.?";
 
 // Used by output grounding: medication names in an answer must appear in the sources.
 export const MEDICATIONS = [
