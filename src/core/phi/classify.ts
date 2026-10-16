@@ -1,8 +1,8 @@
 import { PHI_RULES } from "../rules/phi.rules";
 import { matchRules } from "../rules/types";
 import type { PatientContext, PhiLabel } from "../types";
-import { contextPersons } from "./context";
-import { COMMON_WORD_NAMES, FIRST_NAMES, TITLES } from "./dictionaries";
+import { CLINICAL, NOT_NAMES, contextPersons } from "./context";
+import { CLINICIAN_TITLES, COMMON_WORD_NAMES, FIRST_NAMES, TITLES } from "./dictionaries";
 import { findingsToLabels, resolveLabels } from "./labels";
 import { END, isSentenceStart, NAME_WORD, START } from "./patterns";
 
@@ -13,6 +13,14 @@ const flexibleName = (s: string) => s.trim().split(/[\s._-]+/).map(escape).join(
 
 const DICTIONARY_PERSON = new RegExp(`${START}(?:${FIRST_NAMES.join("|")})\\s+${NAME_WORD}${END}`, "gu");
 const TITLED_PERSON = new RegExp(`${START}${TITLES}\\s+${NAME_WORD}${END}`, "gu");
+
+// Capitalized words that can sit right before a surname without being a given name.
+const NOT_GIVEN = new Set([
+  "dr", "drs", "doctor", "mr", "mrs", "ms", "miss", "mx", "prof", "professor",
+  "per", "saw", "seen", "called", "told", "asked", "paged", "notified", "contacted", "informed", "dear",
+  "and", "with", "for", "by",
+  ...NOT_NAMES, ...CLINICAL,
+]);
 
 // After a sentence-initial "Will", these mean the word is the subject (a name), not the verb.
 const SUBJECT_VERB = /^(?:'s|\s+(?:is|was|has|had|reports|presents|denies|says|states|remains)\b)/;
@@ -74,6 +82,24 @@ export function classifyPhi(text: string, patient: PatientContext, now: Date): P
     for (const m of matches(text, new RegExp(`${START}${escape(part)}${END}`, flags))) {
       if (ambiguousCommonWord(text, m.start, part)) continue;
       add({ type: "PATIENT", start: m.start, end: m.end, confidence: 0.8, field: "name" });
+    }
+  }
+
+  // Someone else with the patient's surname is someone else: "Dr. Chen" is the clinician,
+  // "Suman Chen" a relative. PERSON is still masked, but never restored as the patient's name.
+  const own = new Set(parts.map((p) => p.toLowerCase()));
+  for (const sn of new Set([surname, ...surname.split("-")])) {
+    if (sn.length < 2) continue;
+    // Same span and source as the titled-surname PATIENT match; the higher confidence wins.
+    for (const m of matches(text, new RegExp(`${START}${CLINICIAN_TITLES}\\s+${escape(sn)}${END}`, "giu"))) {
+      labels.push({ type: "PERSON", start: m.start, end: m.end, confidence: 0.95, source: "record" });
+    }
+    // A given name that isn't the patient's makes a longer span than the bare surname, so it wins.
+    for (const m of matches(text, new RegExp(`${START}${NAME_WORD}\\s+${escape(sn)}${END}`, "gu"))) {
+      const given = m.text.split(/\s+/)[0]!;
+      if (own.has(given.toLowerCase()) || NOT_GIVEN.has(given.toLowerCase())) continue;
+      if (ambiguousCommonWord(text, m.start, given)) continue;
+      labels.push({ type: "PERSON", start: m.start, end: m.end, confidence: 0.85, source: "record" });
     }
   }
 
