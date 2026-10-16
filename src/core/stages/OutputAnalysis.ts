@@ -54,8 +54,9 @@ export class OutputAnalysis extends Stage<OutputInput, OutputVerdict> {
     });
 
     const minConfidence = LEAK_CONFIDENCE[input.strict ? "strict" : "normal"];
+    // Links in the answer follow the link policy below (removed in strict mode), not the leak check.
     const leaks = detectPhi(text, input.patient, ctx.now)
-      .filter((l) => l.confidence >= minConfidence)
+      .filter((l) => l.type !== "URL" && l.confidence >= minConfidence)
       .map(({ type, start, end }) => ({ type, start, end }));
     for (const l of [...leaks].reverse()) text = text.slice(0, l.start) + REDACTED + text.slice(l.end);
 
