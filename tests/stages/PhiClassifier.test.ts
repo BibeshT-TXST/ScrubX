@@ -102,3 +102,39 @@ describe("PhiClassifier stage", () => {
     expect(span.attributes).toMatchObject({ labels: 2, PATIENT: 1, AGE: 1 });
   });
 });
+
+
+describe("other people who share the patient's surname", () => {
+  it("labels a clinician with the patient's surname as PERSON, not the patient", async () => {
+    expect(await detect("Referred by Dr. Chen. Dr Chen and Doctor Chen agree.", "pt-007")).toEqual([
+      ["PERSON", "Dr. Chen"],
+      ["PERSON", "Dr Chen"],
+      ["PERSON", "Doctor Chen"],
+    ]);
+  });
+
+  it("labels a different given name before the surname as one PERSON, with nothing left in the clear", async () => {
+    expect(await detect("Suman Chen will drive him home.", "pt-007")).toEqual([["PERSON", "Suman Chen"]]);
+    expect(await detect("Pt's brother Suman Chen is the caregiver.", "pt-007")).toEqual([["PERSON", "Suman Chen"]]);
+  });
+
+  it("still labels the patient as PATIENT", async () => {
+    expect(await detect("Robert Chen and Mr. Chen and Mrs. Chen and Chen", "pt-007")).toEqual([
+      ["PATIENT", "Robert Chen"],
+      ["PATIENT", "Mr. Chen"],
+      ["PATIENT", "Mrs. Chen"],
+      ["PATIENT", "Chen"],
+    ]);
+    expect(await detect("Dr. Maria Lopez, Ms Lopez, Patient Lopez, Pt Lopez. Called Lopez today.")).toEqual([
+      ["PATIENT", "Dr. Maria Lopez"],
+      ["PATIENT", "Ms Lopez"],
+      ["PATIENT", "Lopez"],
+      ["PATIENT", "Lopez"],
+      ["PATIENT", "Lopez"],
+    ]);
+  });
+
+  it("does not read a sentence-initial 'Will' as a given name", async () => {
+    expect(await detect("Will Chen need insulin?", "pt-007")).toEqual([["PATIENT", "Chen"]]);
+  });
+});

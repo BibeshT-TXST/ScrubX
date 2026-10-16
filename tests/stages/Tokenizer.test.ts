@@ -107,3 +107,11 @@ describe("repairTokens", () => {
     expect(repairTokens(text, vault())).toEqual({ text, repaired: 0 });
   });
 });
+
+describe("same-surname people round-trip", () => {
+  it("restores Dr. Lopez as Dr. Lopez, not as the patient", async () => {
+    const { text, vault } = await tokenize("Dr. Lopez reviewed Maria's labs.");
+    expect(text).toBe("[PERSON_1] reviewed [PATIENT_1]'s labs.");
+    expect(rehydrateText(text, vault).text).toBe("Dr. Lopez reviewed Maria Lopez's labs.");
+  });
+});
