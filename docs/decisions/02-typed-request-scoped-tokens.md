@@ -10,7 +10,7 @@ The model has to understand the question ("is this patient's metformin dose stil
 
 ## What we decided
 
-- Identifiers become typed, numbered tokens: `[PATIENT_1]`, `[DATE_2]`, `[MRN_1]`, `[PHONE_1]`, `[PERSON_1]`, `[AGE_1]`.
+- Identifiers become typed, numbered tokens: `[PATIENT_1]`, `[DATE_2]`, `[MRN_1]`, `[PHONE_1]`, `[PERSON_1]`, `[AGE_1]`. Towns, employers, account numbers and URLs became `[LOCATION_1]`, `[ORG_1]`, `[ID_1]` and `[URL_1]` in [13](13-find-identifiers-the-detector-was-not-told-about.md).
 - The vault lives for one request, never serializes (`toJSON` throws), and never leaves the server.
 - Same value, same token. Phones, MRNs and SSNs are keyed by their digits, so `(512) 555-0142` and `512.555.0142` share one token.
 - Values that match the record are stored in the record's spelling. `MARIA LOPEZ`, `Ms. Lopez` and `Maria` all become `[PATIENT_1]` and restore as `Maria Lopez`. The message's letter case is never changed.

@@ -23,3 +23,4 @@ New decisions take the next number. A superseded decision stays in place and lin
 | [10](10-single-role-real-model-observation-only.md) | One role, real model, observation-only security view | What runs is what would run in production |
 | [11](11-clinical-ui.md) | Clinical UI rules | The right patient is unmistakable and numbers can't be misread |
 | [12](12-show-the-record-scrub.md) | Show the record scrub; audit line stays in the log | You see exactly what the model received |
+| [13](13-find-identifiers-the-detector-was-not-told-about.md) | Find identifiers the detector wasn't told about | Names in any case or script, more formats, new types, and a test that plants its own identifiers |
