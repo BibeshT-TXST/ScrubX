@@ -1,18 +1,18 @@
 import { PHI_RULES } from "../rules/phi.rules";
 import { matchRules } from "../rules/types";
 import type { PatientContext, PhiLabel } from "../types";
+import { contextPersons } from "./context";
 import { COMMON_WORD_NAMES, FIRST_NAMES, TITLES } from "./dictionaries";
 import { findingsToLabels, resolveLabels } from "./labels";
+import { END, isSentenceStart, NAME_WORD, START } from "./patterns";
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const flexible = (s: string) => s.trim().split(/\s+/).map(escape).join("\\s+");
+// Names also show up joined by punctuation: "maria-lopez" in a URL, "maria_lopez" in a handle.
+const flexibleName = (s: string) => s.trim().split(/[\s._-]+/).map(escape).join("[\\s._-]+");
 
-const DICTIONARY_PERSON = new RegExp(`\\b(?:${FIRST_NAMES.join("|")})\\s+[A-Z][a-z]+(?:-[A-Z][a-z]+)?\\b`, "g");
-const TITLED_PERSON = new RegExp(`\\b${TITLES}\\s+[A-Z][a-z]+(?:-[A-Z][a-z]+)?\\b`, "g");
-
-function isSentenceStart(text: string, index: number): boolean {
-  return /(?:^|[.!?]\s+|\n\s*)$/.test(text.slice(0, index));
-}
+const DICTIONARY_PERSON = new RegExp(`${START}(?:${FIRST_NAMES.join("|")})\\s+${NAME_WORD}${END}`, "gu");
+const TITLED_PERSON = new RegExp(`${START}${TITLES}\\s+${NAME_WORD}${END}`, "gu");
 
 // After a sentence-initial "Will", these mean the word is the subject (a name), not the verb.
 const SUBJECT_VERB = /^(?:'s|\s+(?:is|was|has|had|reports|presents|denies|says|states|remains)\b)/;
@@ -45,10 +45,11 @@ export function classifyPhi(text: string, patient: PatientContext, now: Date): P
   const labels: PhiLabel[] = [];
   const add = (l: Omit<PhiLabel, "source">) => labels.push({ ...l, source: "record" });
 
-  const parts = name.trim().split(/\s+/);
-  const surname = parts.at(-1)!;
-  const fullName = new RegExp(`\\b(?:${TITLES}\\s+)?${flexible(name)}\\b`, "gi");
-  const titledSurname = new RegExp(`\\b${TITLES}\\s+${escape(surname)}\\b`, "gi");
+  const surname = name.trim().split(/\s+/).at(-1)!;
+  // Hyphenated surnames also count part by part: "Okafor" alone is still Aisha O'Brien-Okafor.
+  const parts = name.trim().split(/[\s-]+/);
+  const fullName = new RegExp(`${START}(?:${TITLES}\\s+)?${flexibleName(name)}${END}`, "giu");
+  const titledSurname = new RegExp(`${START}${TITLES}\\s+${escape(surname)}${END}`, "giu");
 
   const age = ageAt(dob, now);
   const ageAfterName = /^(?:\s*,\s*|\s*\(\s*|\s+is\s+(?:a\s+)?|\s+aged?\s+)(\d{1,3})\b/;
@@ -64,10 +65,13 @@ export function classifyPhi(text: string, patient: PatientContext, now: Date): P
   for (const m of matches(text, titledSurname)) {
     add({ type: "PATIENT", start: m.start, end: m.end, confidence: 0.9, field: "name" });
   }
-  // Single name parts are matched case-sensitively so "marsh trail" isn't Will Marsh.
+
+  // Name parts that are ordinary words stay case-sensitive so "marsh trail" isn't Will Marsh.
+  // Every other part matches in any case: "maria" and "MARIA" are still Maria.
   for (const part of parts) {
     if (part.length < 2) continue;
-    for (const m of matches(text, new RegExp(`\\b${escape(part)}\\b`, "g"))) {
+    const flags = COMMON_WORD_NAMES.has(part.toLowerCase()) ? "gu" : "giu";
+    for (const m of matches(text, new RegExp(`${START}${escape(part)}${END}`, flags))) {
       if (ambiguousCommonWord(text, m.start, part)) continue;
       add({ type: "PATIENT", start: m.start, end: m.end, confidence: 0.8, field: "name" });
     }
@@ -86,6 +90,13 @@ export function classifyPhi(text: string, patient: PatientContext, now: Date): P
     for (const m of matches(text, new RegExp(`\\b${flexible(street)}\\b`, "gi"))) {
       add({ type: "ADDRESS", start: m.start, end: m.end, confidence: 0.95 });
     }
+    // The patient's own ZIP, even with no state in front of it ("moved within 78745").
+    const zip = /\b(\d{5})(?:-\d{4})?\s*$/.exec(address)?.[1];
+    if (zip) {
+      for (const m of matches(text, new RegExp(`\\b${zip}(?:-\\d{4})?\\b`, "g"))) {
+        add({ type: "ZIP", start: m.start, end: m.end, confidence: 0.95 });
+      }
+    }
   }
 
   for (const re of [DICTIONARY_PERSON, TITLED_PERSON]) {
@@ -94,6 +105,8 @@ export function classifyPhi(text: string, patient: PatientContext, now: Date): P
       labels.push({ type: "PERSON", start: m.start, end: m.end, confidence: 0.7, source: "dictionary" });
     }
   }
+  
+  labels.push(...contextPersons(text));
 
   return labels;
 }

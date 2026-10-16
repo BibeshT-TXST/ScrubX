@@ -23,6 +23,10 @@ export const PHI_TYPES = [
   "EMAIL",
   "ADDRESS",
   "ZIP",
+  "LOCATION",
+  "ORG",
+  "ID",
+  "URL",
 ] as const;
 export type PhiType = (typeof PHI_TYPES)[number];
 
@@ -50,7 +54,7 @@ export interface Finding extends Span {
 export interface PhiLabel extends Span {
   type: PhiType;
   confidence: number;
-  source: "record" | "pattern" | "dictionary";
+  source: "record" | "pattern" | "dictionary" | "context";
   field?: "name" | "mrn" | "address";
 }
 

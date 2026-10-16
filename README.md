@@ -84,6 +84,19 @@ SightX keeps login and roles, and ScrubX trusts the role it gets. The pipeline i
 - **Find your way around:** `src/core` holds the pipeline SightX imports. `tests/` checks every promise above. `data/patients.demo.json` holds the eight fake patients.
 - **[Build log](https://darkmatterstech.blogspot.com/):** follow along as SightX and ScrubX grow.
 
+## Citations
+
+What ScrubX's PHI detection and its tests are built on. [Decision 13](docs/decisions/13-find-identifiers-the-detector-was-not-told-about.md) says which change each one informed.
+
+1. U.S. Code of Federal Regulations. *45 CFR § 164.514(b)(2), HIPAA Safe Harbor de-identification standard.* https://www.law.cornell.edu/cfr/text/45/164.514
+2. Xiao, Y., Lim, S., Pollard, T. J., & Ghassemi, M. (2023). *In the Name of Fairness: Assessing the Bias in Clinical Record De-identification.* FAccT '23. https://doi.org/10.1145/3593013.3593982 · https://arxiv.org/abs/2305.11348
+3. Norgeot, B., et al. (2020). *Protected Health Information filter (Philter): accurately and securely de-identifying free-text clinical notes.* npj Digital Medicine, 3, 57. https://pmc.ncbi.nlm.nih.gov/articles/PMC7156708/
+4. Stubbs, A., & Uzuner, Ö. (2015). *Annotating longitudinal clinical narratives for de-identification: The 2014 i2b2/UTHealth corpus.* Journal of Biomedical Informatics, 58(Suppl), S20–S29. https://pmc.ncbi.nlm.nih.gov/articles/PMC4978170
+5. MDN Web Docs. *Word boundary assertion: `\b`.* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Word_boundary_assertion
+6. MDN Web Docs. *Unicode character class escape: `\p{...}`.* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Unicode_character_class_escape
+7. LangChain. *Multi-language data anonymization with Microsoft Presidio.* https://python.langchain.com/docs/guides/privacy/presidio_data_anonymization/multi_language
+8. Vitest. *API reference: `test.fails`.* https://vitest.dev/api/#test-fails
+
 ---
 
 **Built with care to serve people**
