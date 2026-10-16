@@ -46,10 +46,10 @@ describe("OutputAnalysis", () => {
   });
 
   it("is stricter for flagged requests: low-confidence PHI and links are removed", async () => {
-    const text = "Lives in Austin, TX 78745. See https://evil.test/x";
+    const text = "Lives in Austin, TX 78701. See https://evil.test/x";
     const normal = await analyze(text);
     const strict = await analyze(text, true);
-    expect(normal.text).toContain("78745");
+    expect(normal.text).toContain("78701");
     expect(normal.linksRemoved).toBe(0);
     expect(strict.text).toBe(`Lives in ${REDACTED} ${REDACTED}. See [link removed]`);
     expect(strict.linksRemoved).toBe(1);
