@@ -140,6 +140,29 @@ How we checked it:
 - **Still open, tracked by `it.fails`:** a name with no cue (`Anjali from the pharmacy called`), a lone first name (`Ama stopped by`), a town with no cue (`the Kyle clinic`). Closing these needs the allowlist or NER approach.
 - **Out of scope, noted:** in normal mode a model can write a URL with a token in it (`https://x/?q=[PATIENT_1]`), and restore puts the real name into it.
 
+## Result: one prompt, before and after
+
+We also checked the fix end to end in the app. One prompt packs every identifier from the review together with the words that must stay plain. We sent it with Will Marsh selected and read what reached the model in the trace's Model step.
+
+```
+will marsh said his chest hurts, so marsh may skip warfarin tonight. He was seen March 14, again on 14 March 2026, then 03-14-2026; recheck 2026/04/01. His daughter called from 5125550147. SSN 123456789, ZIP 78602. His neighbor Tyrone Jackson and nurse Anjali checked on him. He works at Hays High School in Kyle. Insurance ID BCBS-88812345, portal https://mychart.example.org/u/will.marsh1949. He will return in two weeks. Will the INR stay near 2.4 on warfarin 5 mg? May we keep the dose? He walks the marsh trail daily. Any concerns?
+```
+
+| Identifier | Count | Before (`25e04ca`) | After |
+|---|---|---|---|
+| Full name in lowercase (`will marsh`) | 1 | caught | caught, `[PATIENT_1]` |
+| Surname alone in lowercase (`marsh`) | 1 | leaked | leaked, on purpose (common-word name) |
+| Dates in four formats | 4 | leaked | caught, `[DATE_1]`–`[DATE_4]` |
+| Phone, SSN, ZIP without separators | 3 | leaked | caught, `[PHONE_1]` `[SSN_1]` `[ZIP_1]` |
+| `Tyrone Jackson` | 1 | leaked | caught, `[PERSON_1]` |
+| `Anjali` | 1 | leaked | leaked, known gap (lone first name) |
+| Employer, town, insurance ID, URL | 4 | leaked | caught, `[ORG_1]` `[LOCATION_1]` `[ID_1]` `[URL_1]` |
+| **Total** | **16** | **1 caught** | **14 caught** |
+
+The second half of the prompt reached the model exactly as written. `will`, `Will`, `May`, `marsh trail`, `2.4` and `5 mg` stayed plain text, so the new rules didn't eat clinical words or numbers. The risk engine allowed the request, so the new detectors didn't raise false injection alarms. Restore put the patient's name back into the answer with one replacement.
+
+The two leaks match the trade-offs above. `marsh` passes on purpose, and `Anjali` is the lone-first-name case already tracked by `it.fails`.
+
 ## Sources
 
 - U.S. Code of Federal Regulations, [45 CFR § 164.514(b)(2): HIPAA Safe Harbor de-identification](https://www.law.cornell.edu/cfr/text/45/164.514). Changes 4 and 5.
