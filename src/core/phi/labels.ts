@@ -1,6 +1,6 @@
 import type { Finding, PhiLabel, PhiType } from "../types";
 
-const SOURCE_RANK: Record<PhiLabel["source"], number> = { record: 0, pattern: 1, dictionary: 2 };
+const SOURCE_RANK: Record<PhiLabel["source"], number> = { record: 0, pattern: 1, dictionary: 2, context: 3 };
 
 export function findingsToLabels(findings: readonly Finding[]): PhiLabel[] {
   return findings.flatMap((f) =>
