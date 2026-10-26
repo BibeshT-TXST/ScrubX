@@ -1,3 +1,4 @@
+import { COMMAND, INSTRUCTION_OVERRIDE, INSTRUCTIONS } from "../rules/injection.rules";
 import type { NormalizerChanges } from "../text/normalize";
 import type { Span } from "../types";
 
@@ -42,7 +43,16 @@ const FAMILIES: Record<Exclude<SignalName, "obfuscation">, Family> = {
     [/\b(?:developer|god|admin|debug|unrestricted) mode\b/gi, 0.7],
   ],
   instruction_smuggling: [
-    [/\b(?:ignore|disregard|forget|override|bypass)\b.{0,40}?\b(?:instructions?|rules|guidelines|guardrails|polic(?:y|ies)|restrictions|filters?|what you (?:were|have been) told)\b/gi, 0.8],
+    // Every override INJ-OVERRIDE sees, plus paraphrases still aimed at the assistant: a bare
+    // command ("IGNORE INSTRUCTIONS!!") or "you|your" before the target ("bypass your rules").
+    // One pattern, so a phrase that fits two shapes counts once.
+    [new RegExp(
+      String.raw`${INSTRUCTION_OVERRIDE.source}` +
+        String.raw`|${COMMAND}\b(?:ignore|disregard|forget|override|bypass)\s+(?:(?:my|your|the|all|any)\s+)?${INSTRUCTIONS}` +
+        String.raw`|\b(?:ignore|disregard|forget|override|bypass)\b(?:\s+\w+){0,2}?\s+(?:you|your|yourself)\b(?:\s+\w+){0,2}?\s+${INSTRUCTIONS}`,
+      "gi",
+    ), 0.8],
+    [/\b(?:ignore|disregard|forget|override|bypass)\b.{0,40}?\b(?:guidelines|guardrails|polic(?:y|ies)|restrictions|filters?|what you (?:were|have been) told)\b/gi, 0.8],
     [/\b(?:do not|don't|never) (?:follow|obey|apply)\b.{0,30}?\b(?:rules|instructions|policy|guidelines)\b/gi, 0.7],
     [/\b(?:without|no) (?:restrictions|filters|censorship|limits|safety)\b/gi, 0.5],
   ],
