@@ -43,16 +43,17 @@ const FAMILIES: Record<Exclude<SignalName, "obfuscation">, Family> = {
     [/\b(?:developer|god|admin|debug|unrestricted) mode\b/gi, 0.7],
   ],
   instruction_smuggling: [
-    // Every override INJ-OVERRIDE sees, plus paraphrases still aimed at the assistant: a bare
+        // Every override INJ-OVERRIDE sees, plus paraphrases still aimed at the assistant: a bare
     // command ("IGNORE INSTRUCTIONS!!") or "you|your" before the target ("bypass your rules").
-    // One pattern, so a phrase that fits two shapes counts once.
+    // Restrictions, policy and guidelines are clinical words ("ignore her dietary restrictions"),
+    // so they count only after "you|your". One pattern, so a phrase that fits two shapes counts once.
     [new RegExp(
       String.raw`${INSTRUCTION_OVERRIDE.source}` +
         String.raw`|${COMMAND}\b(?:ignore|disregard|forget|override|bypass)\s+(?:(?:my|your|the|all|any)\s+)?${INSTRUCTIONS}` +
-        String.raw`|\b(?:ignore|disregard|forget|override|bypass)\b(?:\s+\w+){0,2}?\s+(?:you|your|yourself)\b(?:\s+\w+){0,2}?\s+${INSTRUCTIONS}`,
+        String.raw`|\b(?:ignore|disregard|forget|override|bypass)\b(?:\s+\w+){0,2}?\s+(?:you|your|yourself)\b(?:\s+\w+){0,2}?\s+(?:${INSTRUCTIONS}|(?:guidelines|polic(?:y|ies)|restrictions)\b)`,
       "gi",
     ), 0.8],
-    [/\b(?:ignore|disregard|forget|override|bypass)\b.{0,40}?\b(?:guidelines|guardrails|polic(?:y|ies)|restrictions|filters?|what you (?:were|have been) told)\b/gi, 0.8],
+    [/\b(?:ignore|disregard|forget|override|bypass)\b.{0,40}?\b(?:guardrails|filters?|what you (?:were|have been) told)\b/gi, 0.8],
     [/\b(?:do not|don't|never) (?:follow|obey|apply)\b.{0,30}?\b(?:rules|instructions|policy|guidelines)\b/gi, 0.7],
     [/\b(?:without|no) (?:restrictions|filters|censorship|limits|safety)\b/gi, 0.5],
   ],
