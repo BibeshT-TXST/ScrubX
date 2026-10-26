@@ -1,4 +1,4 @@
-import { COMMAND, INSTRUCTION_OVERRIDE, INSTRUCTIONS } from "../rules/injection.rules";
+import { COMMAND, INSTRUCTION_OVERRIDE, INSTRUCTIONS, ROLE_LINE } from "../rules/injection.rules";
 import type { NormalizerChanges } from "../text/normalize";
 import type { Span } from "../types";
 
@@ -38,7 +38,7 @@ const FAMILIES: Record<Exclude<SignalName, "obfuscation">, Family> = {
     [/\byou are (?:now|no longer)\b/gi, 0.6],
     [/\bpretend (?:to be|you are)\b|\broleplay as\b/gi, 0.6],
     [/\bfrom now on\b/gi, 0.35],
-    [/\b(?:new|updated|revised) (?:instructions|rules|persona|role)\b/gi, 0.6],
+    [new RegExp(ROLE_LINE, "gi"), 0.7],
     [/(?:^|\n)\s*(?:system|assistant|developer)\s*:/gi, 0.7],
     [/\b(?:developer|god|admin|debug|unrestricted) mode\b/gi, 0.7],
   ],

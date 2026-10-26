@@ -21,6 +21,13 @@ export const INSTRUCTION_OVERRIDE = new RegExp(
   "gi",
 );
 
+/**
+ * A role marker opening a line. "System:" is also a clinical section header ("System:
+ * cardiovascular review of systems negative"), so it counts only when what follows reads
+ * like an instruction: "you", or a verb the rules below already treat as one.
+ */
+export const ROLE_LINE = String.raw`(?:^|\n)\s*(?:(?:assistant|developer)\s*:|system\s*:(?=\s*(?:please\s+)?(?:you|your|from now on|pretend|ignore|disregard|forget|override|bypass|reveal|show|print|display|output|repeat|leak|dump|tell|include|give|list|send)\b))`;
+
 // Known injection strings. Critical rules block on their own (see RiskEngine).
 export const INJECTION_RULES: readonly Rule[] = [
   { id: "INJ-OVERRIDE", category: "injection", severity: "critical",
@@ -34,7 +41,7 @@ export const INJECTION_RULES: readonly Rule[] = [
     pattern: /\b(?:token map|token mapping|placeholder mapping|vault|de-?tokeni[sz]e|unmask|re-?identify|real (?:name|values?|identit(?:y|ies)) (?:behind|for) )/gi },
   { id: "INJ-ROLE-MARKER", category: "injection", severity: "high",
     description: "Fake role marker",
-    pattern: /(?:^|\n)\s*(?:system|assistant|developer)\s*:|\b(?:system|assistant|developer)\s+(?:note|message|override)\s*:|\[\/?(?:system|inst)\]|<\|im_(?:start|end)\|>/gi },
+    pattern: new RegExp(String.raw`${ROLE_LINE}|\b(?:system|assistant|developer)\s+(?:note|message|override)\s*:|\[\/?(?:system|inst)\]|<\|im_(?:start|end)\|>`, "gi") },
   { id: "INJ-PERSONA", category: "injection", severity: "high",
     description: "Persona switch / jailbreak mode",
     pattern: /\b(?:you are now|from now on,? you|pretend (?:to be|you are)|developer mode|jailbreak|do anything now|DAN mode)\b/gi },
