@@ -139,4 +139,12 @@ describe("context cues around a name", () => {
     );
   });
 
+  it("looks for a name again from the second word of a pair that only its first word ruled out", async () => {
+    expect((await tokenize("Yesterday Siobhán O'Connell rang about the refill.")).text).toBe(
+      "Yesterday [PERSON_1] rang about the refill.",
+    );
+    expect((await tokenize("Seen on Monday Siobhán O'Connell rang twice.")).text).toBe("Seen on Monday [PERSON_1] rang twice.");
+    expect((await tokenize("Chronic Kidney Disease is stable.")).text).toBe("Chronic Kidney Disease is stable.");
+  });
+
 });

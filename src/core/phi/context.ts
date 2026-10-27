@@ -64,6 +64,7 @@ export const CLINICAL = new Set([
 ]);
 
 const words = (s: string) => s.toLowerCase().split(/\s+/);
+const notInPair = (w: string) => NOT_NAMES.has(w) || CLINICAL.has(w);
 
 /** Moves a span's start past a role that ends inside it: "Social Worker Amara Okoye" → "Amara Okoye". */
 function afterRole(text: string, start: number, end: number): number {
@@ -91,14 +92,20 @@ export function contextPersons(text: string): PhiLabel[] {
   const labels: PhiLabel[] = [];
   for (const [re, confidence] of CUES) {
     const pair = confidence < 0.5;
-    for (const m of text.matchAll(re)) {
+    re.lastIndex = 0;
+    for (let m; (m = re.exec(text)); ) {
       const [spanStart, end] = m.indices!.groups!.v!;
       const named = afterRole(text, spanStart, end);
       // A pair that includes a NOT_NAMES word is still not a name: "The Joint Commission".
       const start = pair ? named : afterNotNames(text, named, end);
       if (start === end) continue;
       const ws = words(text.slice(start, end));
-      if (pair && (ws.length < 2 || isSentenceStart(text, start) || ws.some((w) => NOT_NAMES.has(w) || CLINICAL.has(w)))) continue;
+      if (pair && (ws.length < 2 || isSentenceStart(text, start) || ws.some(notInPair))) {
+        // Only the first word was in the way ("Yesterday Siobhán O'Connell", "Monday Siobhán O'Connell"):
+        // search again from the next word instead of after the whole span.
+        if (!NOT_NAMES.has(ws[0]!) && !ws.slice(1).some(notInPair)) re.lastIndex = start + 1;
+        continue;
+      }
       labels.push({ type: "PERSON", start, end, confidence, source: "context" });
     }
   }
