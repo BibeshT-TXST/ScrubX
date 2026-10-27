@@ -29,6 +29,10 @@ const ACTION =
   `(?:said|says|called|calls|asked|asks|brought|brings|drove|drives|visited|visits|texted|emailed|phoned|` +
   `reported|reports|stated|states|is (?:her|his|their|the patient's) ${RELATION})`;
 
+// Verbs a note also uses for findings and orders ("Edema noted", "Statin recommended").
+// Only with an object after them do they say someone did something: "flagged an interaction".
+const NOTE_ACTION = `(?:flagged|noted|recommended|refilled|prescribed|documented)\\s+(?:a|an|the|that|this|her|his|their)`;
+
 // [pattern, confidence]. The name is the `v` group.
 const CUES: [RegExp, number][] = [
   [new RegExp(`${START}${RELATION}(?:,|\\s+(?:is|was|named|called))?\\s+(?<v>${NAME})${END}`, "dgu"), 0.7],
@@ -36,7 +40,8 @@ const CUES: [RegExp, number][] = [
   [new RegExp(`${START}(?<v>${NAME})\\s+${ACTION}${END}`, "dgu"), 0.7],
   // Below the output check's 0.5 bar: tokenized on the way in, but a model's own
   // Title Case ("Blood Pressure Goals") is only redacted in strict mode.
-  [new RegExp(`${START}(?<v>${NAME_WORD}(?:\\s+${NAME_WORD}){1,2})${END}`, "dgu"), 0.45],
+  // Followed by a note action, a pair can open a sentence: "Siobhán O'Connell flagged an interaction".
+  [new RegExp(`${START}(?<v>${NAME_WORD}(?:\\s+${NAME_WORD}){1,2})(?<acted>\\s+${NOTE_ACTION})?${END}`, "dgu"), 0.45],
 ];
 
 // Capitalized words that are not names on their own. Any match made only of these is dropped,
@@ -100,7 +105,8 @@ export function contextPersons(text: string): PhiLabel[] {
       const start = pair ? named : afterNotNames(text, named, end);
       if (start === end) continue;
       const ws = words(text.slice(start, end));
-      if (pair && (ws.length < 2 || isSentenceStart(text, start) || ws.some(notInPair))) {
+      const opensSentence = isSentenceStart(text, start) && !m.groups!.acted;
+      if (pair && (ws.length < 2 || opensSentence || ws.some(notInPair))) {
         // Only the first word was in the way ("Yesterday Siobhán O'Connell", "Monday Siobhán O'Connell"):
         // search again from the next word instead of after the whole span.
         if (!NOT_NAMES.has(ws[0]!) && !ws.slice(1).some(notInPair)) re.lastIndex = start + 1;

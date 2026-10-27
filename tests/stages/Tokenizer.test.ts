@@ -147,4 +147,15 @@ describe("context cues around a name", () => {
     expect((await tokenize("Chronic Kidney Disease is stable.")).text).toBe("Chronic Kidney Disease is stable.");
   });
 
+  it("reads a note action with an object as someone's, even at the start of a sentence", async () => {
+    expect((await tokenize("Siobhán O'Connell flagged an interaction.")).text).toBe("[PERSON_1] flagged an interaction.");
+    expect((await tokenize("Dr. Siobhán O'Connell noted a murmur.")).text).toBe("Dr. [PERSON_1] noted a murmur.");
+  });
+
+  it("leaves a finding or an order before a note verb alone", async () => {
+    for (const text of ["Edema noted in both ankles.", "Metformin refilled for 90 days.", "Lantus Solostar prescribed at 20 units nightly."]) {
+      expect((await tokenize(text)).text).toBe(text);
+    }
+  });
+
 });
