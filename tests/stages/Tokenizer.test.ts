@@ -115,3 +115,10 @@ describe("same-surname people round-trip", () => {
     expect(rehydrateText(text, vault).text).toBe("Dr. Lopez reviewed Maria Lopez's labs.");
   });
 });
+
+describe("context cues around a name", () => {
+  it("leaves a question that starts with a question word intact", async () => {
+    expect((await tokenize("Who is her caregiver now?")).text).toBe("Who is her caregiver now?");
+    expect((await tokenize("How is her caregiver coping?")).text).toBe("How is her caregiver coping?");
+  });
+});

@@ -3,6 +3,7 @@ import { MODEL_UNAVAILABLE } from "@/core/providers/LLMProvider";
 import { REFUSAL } from "@/core/stages/Block";
 import type { StageEvent } from "@/core/pipeline/events";
 import { config, DEMO_IDS, patient, pipeline, request } from "../helpers";
+import { MockProvider } from "../support/MockProvider"; 
 
 const ANIMATION = "<p>Patient MARIA LOPEZ, age 58, seen 03/14/2026. MRN-100231. Should we adjust metformin?</p>";
 
@@ -79,6 +80,13 @@ describe("Pipeline.run", () => {
     expect(strict(flagged)).toBe(true);
     expect(quarantined.audit.contextQuarantined).toBe(1);
     expect(strict(quarantined)).toBe(true);
+  });
+
+  it("keeps a question word in the model's answer instead of redacting it as a name", async () => {
+    const llm = new MockProvider({ respond: () => "Who is her caregiver: [PERSON_1]." });
+    const { trace, response } = await pipeline({ llm }).run(await request("Her daughter Elena Lopez visits. Who is her caregiver now?"));
+    expect(trace.spans.find((s) => s.stage === "Tokenizer")?.output?.text).toBe("Her daughter [PERSON_1] visits. Who is her caregiver now?");
+    expect(response).toBe("Who is her caregiver: Elena Lopez.");
   });
 
   it("omits every snapshot when trace payloads are off", async () => {
