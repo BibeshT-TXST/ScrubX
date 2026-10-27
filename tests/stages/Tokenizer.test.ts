@@ -115,3 +115,47 @@ describe("same-surname people round-trip", () => {
     expect(rehydrateText(text, vault).text).toBe("Dr. Lopez reviewed Maria Lopez's labs.");
   });
 });
+
+describe("context cues around a name", () => {
+  it("leaves a question that starts with a question word intact", async () => {
+    expect((await tokenize("Who is her caregiver now?")).text).toBe("Who is her caregiver now?");
+    expect((await tokenize("How is her caregiver coping?")).text).toBe("How is her caregiver coping?");
+  });
+
+  it("keeps the role and the words before it out of the name", async () => {
+    expect((await tokenize("Pharmacist Siobhán O'Connell flagged an interaction.")).text).toBe(
+      "Pharmacist [PERSON_1] flagged an interaction.",
+    );
+    expect((await tokenize("Yesterday Nurse Tendai called back.")).text).toBe("Yesterday Nurse [PERSON_1] called back.");
+    expect((await tokenize("Social Worker Amara Okoye called.")).text).toBe("Social Worker [PERSON_1] called.");
+    expect((await tokenize("When Tyrone Jackson called, she was asleep.")).text).toBe("When [PERSON_1] called, she was asleep.");
+    expect((await tokenize("Therapist Lopez said she is improving.")).text).toBe("Therapist [PERSON_1] said she is improving.");
+  });
+
+  it("keeps a NOT_NAMES word that is part of the name, and a pair that opens with one", async () => {
+    expect((await tokenize("Minh Son said she is dizzy.")).text).toBe("[PERSON_1] said she is dizzy.");
+    expect((await tokenize("The Joint Commission requires a medication reconciliation.")).text).toBe(
+      "The Joint Commission requires a medication reconciliation.",
+    );
+  });
+
+  it("looks for a name again from the second word of a pair that only its first word ruled out", async () => {
+    expect((await tokenize("Yesterday Siobhán O'Connell rang about the refill.")).text).toBe(
+      "Yesterday [PERSON_1] rang about the refill.",
+    );
+    expect((await tokenize("Seen on Monday Siobhán O'Connell rang twice.")).text).toBe("Seen on Monday [PERSON_1] rang twice.");
+    expect((await tokenize("Chronic Kidney Disease is stable.")).text).toBe("Chronic Kidney Disease is stable.");
+  });
+
+  it("reads a note action with an object as someone's, even at the start of a sentence", async () => {
+    expect((await tokenize("Siobhán O'Connell flagged an interaction.")).text).toBe("[PERSON_1] flagged an interaction.");
+    expect((await tokenize("Dr. Siobhán O'Connell noted a murmur.")).text).toBe("Dr. [PERSON_1] noted a murmur.");
+  });
+
+  it("leaves a finding or an order before a note verb alone", async () => {
+    for (const text of ["Edema noted in both ankles.", "Metformin refilled for 90 days.", "Lantus Solostar prescribed at 20 units nightly."]) {
+      expect((await tokenize(text)).text).toBe(text);
+    }
+  });
+
+});

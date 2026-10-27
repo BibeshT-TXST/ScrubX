@@ -24,3 +24,5 @@ New decisions take the next number. A superseded decision stays in place and lin
 | [11](11-clinical-ui.md) | Clinical UI rules | The right patient is unmistakable and numbers can't be misread |
 | [12](12-show-the-record-scrub.md) | Show the record scrub; audit line stays in the log | You see exactly what the model received |
 | [13](13-find-identifiers-the-detector-was-not-told-about.md) | Find identifiers the detector wasn't told about | Names in any case or script, more formats, new types, and a test that plants its own identifiers |
+| [15](15-an-override-has-to-aim-at-the-assistant.md) | An override has to aim at the assistant | Non-adherence notes and review-of-systems headers aren't attacks; a false-block gate keeps it that way |
+| [16](16-a-cue-word-is-not-part-of-the-name.md) | A cue word is not part of the name | Roles and opening words stay in the text, only the name is tokenized, and "Who" is never a person |
