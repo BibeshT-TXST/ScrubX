@@ -20,6 +20,7 @@ const ROLE_CUE = `(?:${ROLES.map((r) => r.replace(" ", "\\s+")).join("|")})`;
 // Words that only make a role, never a given name: "Therapist Chen", "Social Worker Chen".
 export const ROLE = `(?:${ROLES.map((r) => r.split(" ").map(anyCase).join("\\s+")).join("|")})`;
 export const ROLE_WORDS = ROLES.flatMap((r) => r.toLowerCase().split(" "));
+const THROUGH_LAST_ROLE = new RegExp(`^.*${START}${ROLE}\\s+`, "su"); 
 const RELATION = `(?:${RELATIONS.map(anyCase).join("|")})`;
 const NAME = `${NAME_WORD}(?:\\s+${NAME_WORD}){0,2}`;
 
@@ -64,6 +65,24 @@ export const CLINICAL = new Set([
 
 const words = (s: string) => s.toLowerCase().split(/\s+/);
 
+/** Moves a span's start past a role that ends inside it: "Social Worker Amara Okoye" → "Amara Okoye". */
+function afterRole(text: string, start: number, end: number): number {
+  const role = THROUGH_LAST_ROLE.exec(text.slice(0, end));
+  return Math.max(start, role?.[0].length ?? 0);
+}
+
+/**
+ * Moves a span's start past the NOT_NAMES words that open it: "When Tyrone Jackson" → "Tyrone Jackson".
+ * One further in stays, since "Son" is also a name ("Minh Son"). Returns `end` if nothing is left.
+ */
+function afterNotNames(text: string, start: number, end: number): number {
+  for (const [word] of text.slice(start, end).matchAll(/\S+\s*/g)) {
+    if (!NOT_NAMES.has(word.trimEnd().toLowerCase())) break;
+    start += word.length;
+  }
+  return start;
+}
+
 /**
  * People named in free text who aren't the patient and aren't in the name dictionary.
  * Found by what surrounds them, not by a name list, so it works for any name.
@@ -73,10 +92,13 @@ export function contextPersons(text: string): PhiLabel[] {
   for (const [re, confidence] of CUES) {
     const pair = confidence < 0.5;
     for (const m of text.matchAll(re)) {
-      const [start, end] = m.indices!.groups!.v!;
-      const ws = words(m.groups!.v!);
-      if (ws.every((w) => NOT_NAMES.has(w))) continue;
-      if (pair && (isSentenceStart(text, start) || ws.some((w) => NOT_NAMES.has(w) || CLINICAL.has(w)))) continue;
+      const [spanStart, end] = m.indices!.groups!.v!;
+      const named = afterRole(text, spanStart, end);
+      // A pair that includes a NOT_NAMES word is still not a name: "The Joint Commission".
+      const start = pair ? named : afterNotNames(text, named, end);
+      if (start === end) continue;
+      const ws = words(text.slice(start, end));
+      if (pair && (ws.length < 2 || isSentenceStart(text, start) || ws.some((w) => NOT_NAMES.has(w) || CLINICAL.has(w)))) continue;
       labels.push({ type: "PERSON", start, end, confidence, source: "context" });
     }
   }

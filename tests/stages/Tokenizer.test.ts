@@ -121,4 +121,22 @@ describe("context cues around a name", () => {
     expect((await tokenize("Who is her caregiver now?")).text).toBe("Who is her caregiver now?");
     expect((await tokenize("How is her caregiver coping?")).text).toBe("How is her caregiver coping?");
   });
+
+  it("keeps the role and the words before it out of the name", async () => {
+    expect((await tokenize("Pharmacist Siobhán O'Connell flagged an interaction.")).text).toBe(
+      "Pharmacist [PERSON_1] flagged an interaction.",
+    );
+    expect((await tokenize("Yesterday Nurse Tendai called back.")).text).toBe("Yesterday Nurse [PERSON_1] called back.");
+    expect((await tokenize("Social Worker Amara Okoye called.")).text).toBe("Social Worker [PERSON_1] called.");
+    expect((await tokenize("When Tyrone Jackson called, she was asleep.")).text).toBe("When [PERSON_1] called, she was asleep.");
+    expect((await tokenize("Therapist Lopez said she is improving.")).text).toBe("Therapist [PERSON_1] said she is improving.");
+  });
+
+  it("keeps a NOT_NAMES word that is part of the name, and a pair that opens with one", async () => {
+    expect((await tokenize("Minh Son said she is dizzy.")).text).toBe("[PERSON_1] said she is dizzy.");
+    expect((await tokenize("The Joint Commission requires a medication reconciliation.")).text).toBe(
+      "The Joint Commission requires a medication reconciliation.",
+    );
+  });
+
 });
