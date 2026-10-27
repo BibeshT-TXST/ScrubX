@@ -86,7 +86,7 @@ SightX keeps login and roles, and ScrubX trusts the role it gets. The pipeline i
 
 ## Citations
 
-What ScrubX's PHI and injection detection and their tests are built on. [Decision 13](docs/decisions/13-find-identifiers-the-detector-was-not-told-about.md), [Decision 14](docs/decisions/14-same-surname-is-not-the-patient.md) and [Decision 15](docs/decisions/15-an-override-has-to-aim-at-the-assistant.md) say which change each one informed.
+What ScrubX's PHI and injection detection and their tests are built on. [Decision 13](docs/decisions/13-find-identifiers-the-detector-was-not-told-about.md), [Decision 14](docs/decisions/14-same-surname-is-not-the-patient.md), [Decision 15](docs/decisions/15-an-override-has-to-aim-at-the-assistant.md) and [Decision 16](docs/decisions/16-a-cue-word-is-not-part-of-the-name.md) say which change each one informed.
 
 1. U.S. Code of Federal Regulations. *45 CFR § 164.514(b)(2), HIPAA Safe Harbor de-identification standard.* https://www.law.cornell.edu/cfr/text/45/164.514
 2. Xiao, Y., Lim, S., Pollard, T. J., & Ghassemi, M. (2023). *In the Name of Fairness: Assessing the Bias in Clinical Record De-identification.* FAccT '23. https://doi.org/10.1145/3593013.3593982 · https://arxiv.org/abs/2305.11348
@@ -109,6 +109,7 @@ What ScrubX's PHI and injection detection and their tests are built on. [Decisio
 19. Liu, Y., Jia, Y., Geng, R., Jia, J., & Gong, N. Z. (2024). *Formalizing and Benchmarking Prompt Injection Attacks and Defenses.* USENIX Security Symposium 2024. https://arxiv.org/abs/2310.12815
 20. Li, H., & Liu, X. (2024). *InjecGuard: Benchmarking and Mitigating Over-defense in Prompt Injection Guardrail Models.* arXiv:2410.22770. https://arxiv.org/abs/2410.22770
 21. Centers for Medicare & Medicaid Services. *1997 Documentation Guidelines for Evaluation and Management Services.* https://www.cms.gov/outreach-and-education/medicare-learning-network-mln/mlnedwebguide/downloads/97docguidelines.pdf
+22. MDN Web Docs. *`RegExp.prototype.exec()`.* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
 
 ---
 
