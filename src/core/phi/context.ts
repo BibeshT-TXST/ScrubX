@@ -17,6 +17,9 @@ const ROLES = [
 ];
 
 const ROLE_CUE = `(?:${ROLES.map((r) => r.replace(" ", "\\s+")).join("|")})`;
+// Words that only make a role, never a given name: "Therapist Chen", "Social Worker Chen".
+export const ROLE = `(?:${ROLES.map((r) => r.split(" ").map(anyCase).join("\\s+")).join("|")})`;
+export const ROLE_WORDS = ROLES.flatMap((r) => r.toLowerCase().split(" "));
 const RELATION = `(?:${RELATIONS.map(anyCase).join("|")})`;
 const NAME = `${NAME_WORD}(?:\\s+${NAME_WORD}){0,2}`;
 

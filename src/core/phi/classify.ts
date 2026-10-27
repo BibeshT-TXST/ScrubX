@@ -1,7 +1,7 @@
 import { PHI_RULES } from "../rules/phi.rules";
 import { matchRules } from "../rules/types";
 import type { PatientContext, PhiLabel } from "../types";
-import { CLINICAL, NOT_NAMES, contextPersons } from "./context";
+import { CLINICAL, NOT_NAMES, contextPersons,ROLE, ROLE_WORDS } from "./context";
 import { CLINICIAN_TITLES, COMMON_WORD_NAMES, FIRST_NAMES, TITLES } from "./dictionaries";
 import { findingsToLabels, resolveLabels } from "./labels";
 import { END, isSentenceStart, NAME_WORD, START } from "./patterns";
@@ -19,7 +19,7 @@ const NOT_GIVEN = new Set([
   "dr", "drs", "doctor", "mr", "mrs", "ms", "miss", "mx", "prof", "professor",
   "per", "saw", "seen", "called", "told", "asked", "paged", "notified", "contacted", "informed", "dear",
   "and", "with", "for", "by",
-  ...NOT_NAMES, ...CLINICAL,
+  ...NOT_NAMES, ...CLINICAL, ...ROLE_WORDS,
 ]);
 
 // After a sentence-initial "Will", these mean the word is the subject (a name), not the verb.
@@ -94,6 +94,13 @@ export function classifyPhi(text: string, patient: PatientContext, now: Date): P
     for (const m of matches(text, new RegExp(`${START}${CLINICIAN_TITLES}\\s+${escape(sn)}${END}`, "giu"))) {
       labels.push({ type: "PERSON", start: m.start, end: m.end, confidence: 0.95, source: "record" });
     }
+    
+    // A care team role works the same way but stays in the text: "Nurse Chen" is "Nurse [PERSON_1]".
+    // Same span and source as the bare-surname PATIENT match; the higher confidence wins.
+    for (const m of matches(text, new RegExp(`${START}${ROLE}\\s+${escape(sn)}${END}`, "giu"))) {
+      labels.push({ type: "PERSON", start: m.end - sn.length, end: m.end, confidence: 0.95, source: "record" });
+    }
+
     // A given name that isn't the patient's makes a longer span than the bare surname, so it wins.
     for (const m of matches(text, new RegExp(`${START}${NAME_WORD}\\s+${escape(sn)}${END}`, "gu"))) {
       const given = m.text.split(/\s+/)[0]!;
