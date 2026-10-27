@@ -10,6 +10,13 @@ const RELATIONS = [
   "neighbor", "neighbour", "friend", "roommate", "caregiver", "guardian", "boyfriend", "girlfriend",
   "fiancé", "fiancée", "coworker", "colleague", "boss", "landlord", "sponsor",
 ];
+
+const ROLES = [
+  "nurse", "RN", "LPN", "NP", "PA", "aide", "pharmacist", "therapist", "physician", "provider", "doctor",
+  "counselor", "social worker", "case manager", "dietitian", "hospitalist", "caretaker"
+];
+
+const ROLE_CUE = `(?:${ROLES.map((r) => r.replace(" ", "\\s+")).join("|")})`;
 const RELATION = `(?:${RELATIONS.map(anyCase).join("|")})`;
 const NAME = `${NAME_WORD}(?:\\s+${NAME_WORD}){0,2}`;
 
@@ -21,6 +28,7 @@ const ACTION =
 // [pattern, confidence]. The name is the `v` group.
 const CUES: [RegExp, number][] = [
   [new RegExp(`${START}${RELATION}(?:,|\\s+(?:is|was|named|called))?\\s+(?<v>${NAME})${END}`, "dgu"), 0.7],
+  [new RegExp(`${START}${ROLE_CUE}\\s+(?<v>${NAME})${END}`, "dgu"), 0.7],
   [new RegExp(`${START}(?<v>${NAME})\\s+${ACTION}${END}`, "dgu"), 0.7],
   // Below the output check's 0.5 bar: tokenized on the way in, but a model's own
   // Title Case ("Blood Pressure Goals") is only redacted in strict mode.
