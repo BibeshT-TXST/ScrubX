@@ -31,7 +31,10 @@ const CUES: [RegExp, number][] = [
 // and a capitalized pair that includes one is not treated as a name.
 export const NOT_NAMES = new Set([
   "i", "he", "she", "they", "we", "you", "it", "her", "his", "their", "our", "my", "the", "this", "that",
-  "a", "an", "someone", "nobody", "everyone", "patient", "pt", "doctor", "nurse", "provider", "pharmacy",
+  "him", "them", "me", "us", "your", "its",
+  "who", "whom", "whose", "what", "which", "where", "when", "why", "how",
+  "a", "an", "someone", "somebody", "anyone", "anybody", "nobody", "everyone",
+  "patient", "pt", "doctor", "nurse", "provider", "pharmacy",
   "pharmacist", "clinic", "hospital", "office", "team", "staff", "family", "insurance", "lab", "labs",
   "cardiology", "radiology", "nephrology", "oncology", "neurology", "endocrinology", "pulmonology",
   ...RELATIONS,
