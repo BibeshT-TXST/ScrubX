@@ -1,4 +1,5 @@
 import "server-only";
+import { DailyCapProvider } from "./DailyCapProvider";
 import {
   DemoPatientRepository,
   GeminiProvider,
@@ -20,9 +21,9 @@ interface ScrubX {
 // Always a real model. Without a key the app still runs, and every chat reports
 // that it couldn't connect instead of the server failing to start.
 function createProvider({ llm }: ScrubXConfig): LLMProvider {
-  return llm.apiKey
-    ? new GeminiProvider({ apiKey: llm.apiKey, model: llm.model, fallbackModel: llm.fallbackModel })
-    : new UnavailableProvider("No model is configured (GEMINI_API_KEY is not set)");
+  if (!llm.apiKey) return new UnavailableProvider("No model is configured (GEMINI_API_KEY is not set)");
+  const gemini = new GeminiProvider({ apiKey: llm.apiKey, model: llm.model, fallbackModel: llm.fallbackModel });
+  return llm.dailyCallCap ? new DailyCapProvider(gemini, llm.dailyCallCap) : gemini;
 }
 
 function createRepository(config: ScrubXConfig): PatientRepository {

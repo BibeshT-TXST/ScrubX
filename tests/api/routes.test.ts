@@ -15,16 +15,26 @@ vi.mock("@/server/scrubx", async () => {
 });
 
 let stdout: MockInstance;
+let clientIp = "";
+let nextClient = 0;
+
 beforeEach(() => {
   stdout = vi.spyOn(console, "log").mockImplementation(() => {});
+  vi.stubEnv("VERCEL", "1");
+  clientIp = `198.51.100.${++nextClient}`;
 });
-afterEach(() => vi.restoreAllMocks());
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
+
 
 function post(body: unknown, headers: Record<string, string> = {}) {
   return POST(
     new Request("http://test/api/pipeline", {
       method: "POST",
-      headers: { "content-type": "application/json", ...headers },
+      headers: { "content-type": "application/json", "x-forwarded-for": clientIp, ...headers },
       body: typeof body === "string" ? body : JSON.stringify(body),
     }),
   );
@@ -100,6 +110,61 @@ describe("POST /api/pipeline", () => {
     const res = await post(body);
     expect(res.status).toBe(status);
     expect((await res.json()).error).toBe(message);
+  });
+});
+
+describe("POST /api/pipeline history limits", () => {
+  const turns = (count: number, chars: number) => Array(count).fill({ role: "user", content: "x".repeat(chars) });
+  const send = (history: unknown[]) => post({ patientId: "pt-001", message: "hi", history });
+
+  it.each([
+    ["a turn over 8000 characters", turns(1, 8001), "A history turn can be at most 8000 characters"],
+    ["turns over 40000 characters in total", turns(6, 8000), "History can be at most 40000 characters in total"],
+    ["the reported 1.2 million character history", turns(20, 60_000), "A history turn can be at most 8000 characters"],
+  ])("rejects %s with a clear error", async (_, history, issue) => {
+    const res = await send(history);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: "Invalid request", issues: { history: expect.arrayContaining([issue]) } });
+  });
+
+  it("rejects a turn that isn't text instead of failing while counting it", async () => {
+    expect((await send([{ role: "user", content: 5 }])).status).toBe(400);
+  });
+
+  it("accepts history exactly at both limits", async () => {
+    const res = await send(turns(5, 8000));
+    expect(res.status).toBe(200);
+    expect((await events(res)).at(-1)?.type).toBe("result");
+  });
+});
+
+describe("POST /api/pipeline rate limit", () => {
+  
+  const hi = { patientId: "pt-001", message: "hi" };
+
+  it("returns 429 with Retry-After on the 11th request in a minute from one IP", async () => {
+    for (let i = 0; i < 10; i++) {
+      const res = await post(hi);
+      expect(res.status).toBe(200);
+      await events(res);
+    }
+
+    const limited = await post(hi);
+    expect(limited.status).toBe(429);
+    const retryAfter = Number(limited.headers.get("retry-after"));
+    expect(retryAfter).toBeGreaterThanOrEqual(1);
+    expect(retryAfter).toBeLessThanOrEqual(60);
+    expect((await limited.json()).error).toBe(`Too many requests. Try again in ${retryAfter}s.`);
+  });
+
+  it("counts invalid requests, and limits before reading the body", async () => {
+    for (let i = 0; i < 10; i++) expect((await post("{nope")).status).toBe(400);
+    expect((await post("{nope")).status).toBe(429);
+  });
+
+  it("doesn't let one address use up another's allowance", async () => {
+    for (let i = 0; i < 11; i++) await post("{nope");
+    expect((await post("{nope", { "x-forwarded-for": "203.0.113.9" })).status).toBe(400);
   });
 });
 

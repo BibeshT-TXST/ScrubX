@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { ChatTurnSchema, DEFAULT_ROLE } from "@/core";
+import { ChatTurnSchema, DEFAULT_ROLE, MAX_HISTORY_CHARS } from "@/core";
 import { NDJSON_CONTENT_TYPE, toNdjson, type StreamEvent } from "@/lib/ndjson";
+import { retryAfterSeconds } from "@/server/rate-limit";
 import { scrubx } from "@/server/scrubx";
 
 // Covers the Gemini provider's 50 s retry budget (3 attempts with backoff) plus pipeline overhead.
@@ -12,7 +13,9 @@ const BodySchema = z.object({
   // Set by the host's auth layer. The app has one role, so the browser doesn't send it.
   role: z.string().min(1).max(40).default(DEFAULT_ROLE),
   message: z.string().trim().min(1).max(4000),
-  history: z.array(ChatTurnSchema).max(20).default([]),
+  history: z.array(ChatTurnSchema).max(20)
+    .refine((turns) => turns.reduce((total, t) => total + t.content.length, 0) <= MAX_HISTORY_CHARS, `History can be at most ${MAX_HISTORY_CHARS} characters in total`)
+    .default([]),
 });
 
 const REQUEST_ID = /^[\w.-]{1,64}$/;
@@ -33,6 +36,17 @@ async function* withErrorEvent(events: AsyncIterable<StreamEvent>, requestId: st
 
 /** Runs one chat turn through ScrubX and streams a StageEvent per line, ending with the PipelineResult. */
 export async function POST(req: Request) {
+  
+  // Before the body is read, so an over-limit client costs as little as possible.
+  const retryAfter = await retryAfterSeconds(req);
+  
+  if (retryAfter !== null) {
+    return Response.json(
+      { error: `Too many requests. Try again in ${retryAfter}s.` },
+      { status: 429, headers: { "retry-after": String(retryAfter) } },
+    );
+  }
+
   let json: unknown;
   try {
     json = await req.json();

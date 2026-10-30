@@ -29,6 +29,15 @@ describe("loadConfig", () => {
     expect(loadConfig({}).supabase).toBeUndefined();
   });
 
+  it("reads the rate limit store under either name, and rejects half of one", () => {
+    const store = { url: "https://r.upstash.io", token: "t" };
+    expect(loadConfig({}).rateLimitStore).toBeUndefined();
+    expect(loadConfig({ UPSTASH_REDIS_REST_URL: store.url, UPSTASH_REDIS_REST_TOKEN: "t" }).rateLimitStore).toEqual(store);
+    expect(loadConfig({ KV_REST_API_URL: store.url, KV_REST_API_TOKEN: "t" }).rateLimitStore).toEqual(store);
+    expect(() => loadConfig({ UPSTASH_REDIS_REST_URL: store.url })).toThrow(/both a REST URL and a REST token/);
+    expect(() => loadConfig({ KV_REST_API_TOKEN: "t" })).toThrow(/both a REST URL and a REST token/);
+  });
+
   it("keeps trace payloads off by default for any non-demo patient source", () => {
     expect(loadConfig(SUPABASE).tracePayloads).toBe(false);
     expect(loadConfig({ ...SUPABASE, SCRUBX_TRACE_PAYLOADS: "true" }).tracePayloads).toBe(true);
@@ -56,6 +65,13 @@ describe("loadConfig", () => {
     expect(() => loadConfig({ RISK_BLOCK_THRESHOLD: "high" })).toThrow();
   });
 
+  it("reads the daily model call cap, off by default", () => {
+    expect(loadConfig({}).llm.dailyCallCap).toBeUndefined();
+    expect(loadConfig({ DAILY_MODEL_CALL_CAP: "500" }).llm.dailyCallCap).toBe(500);
+    expect(() => loadConfig({ DAILY_MODEL_CALL_CAP: "0" })).toThrow();
+    expect(() => loadConfig({ DAILY_MODEL_CALL_CAP: "lots" })).toThrow();
+  });
+  
   it("reads the Gemini settings; a missing key is allowed (chats report they couldn't connect)", () => {
     expect(() => loadConfig({})).not.toThrow();
     expect(loadConfig({ GEMINI_API_KEY: "k", LLM_MODEL: "m" }).llm).toMatchObject({ apiKey: "k", model: "m" });
