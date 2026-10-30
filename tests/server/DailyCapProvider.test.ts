@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { ProviderError, type LLMProvider } from "@/core";
-import { DailyCapProvider } from "@/server/DailycapProvider";
+import { DailyCapProvider } from "@/server/DailyCapProvider";
 import { createCounter } from "@/server/rate-limit";
 
 const PROMPT = { system: "s", messages: [] };

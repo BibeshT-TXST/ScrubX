@@ -1,5 +1,5 @@
 import "server-only";
-import { DailyCapProvider } from "./DailycapProvider";
+import { DailyCapProvider } from "./DailyCapProvider";
 import {
   DemoPatientRepository,
   GeminiProvider,
