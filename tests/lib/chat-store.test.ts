@@ -40,6 +40,27 @@ describe("historyFor", () => {
     expect(history).toHaveLength(10);
     expect(history[0]).toEqual({ role: "user", content: "q3" });
   });
+
+  it("drops the oldest exchanges to stay within the total limit, and opens on a question", () => {
+    const q = (n: number) => user(`${n}`.padEnd(4000, "q"));
+    const a = (n: number) => reply(`${n}`.padEnd(8000, "a"), "answered");
+    const thread = [1, 2, 3, 4, 5].flatMap((n) => [q(n), a(n)]);
+
+    const history = historyFor(thread);
+    expect(history.reduce((n, t) => n + t.content.length, 0)).toBeLessThanOrEqual(40_000);
+    expect(history[0]).toMatchObject({ role: "user", content: expect.stringMatching(/^3/) });
+    expect(history.at(-1)).toMatchObject({ role: "assistant", content: expect.stringMatching(/^5/) });
+  });
+
+  it("stops at a turn over the per-turn limit rather than sending it", () => {
+    const thread = [user("q1"), reply("a1", "answered"), user("q2"), reply("x".repeat(8001), "answered")];
+    expect(historyFor(thread)).toEqual([]);
+    expect(historyFor([...thread, user("q3"), reply("a3", "answered")])).toEqual([
+      { role: "user", content: "q3" },
+      { role: "assistant", content: "a3" },
+    ]);
+  });
+
 });
 
 describe("chatActions", () => {
