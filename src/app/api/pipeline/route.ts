@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ChatTurnSchema, DEFAULT_ROLE, MAX_HISTORY_CHARS } from "@/core";
 import { NDJSON_CONTENT_TYPE, toNdjson, type StreamEvent } from "@/lib/ndjson";
+import { retryAfterSeconds } from "@/server/rate-limit";
 import { scrubx } from "@/server/scrubx";
 
 // Covers the Gemini provider's 50 s retry budget (3 attempts with backoff) plus pipeline overhead.
@@ -35,6 +36,17 @@ async function* withErrorEvent(events: AsyncIterable<StreamEvent>, requestId: st
 
 /** Runs one chat turn through ScrubX and streams a StageEvent per line, ending with the PipelineResult. */
 export async function POST(req: Request) {
+  
+  // Before the body is read, so an over-limit client costs as little as possible.
+  const retryAfter = await retryAfterSeconds(req);
+  
+  if (retryAfter !== null) {
+    return Response.json(
+      { error: `Too many requests. Try again in ${retryAfter}s.` },
+      { status: 429, headers: { "retry-after": String(retryAfter) } },
+    );
+  }
+
   let json: unknown;
   try {
     json = await req.json();
