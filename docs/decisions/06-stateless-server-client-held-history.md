@@ -2,7 +2,7 @@
 
 > ScrubX keeps nothing. No chat, trace or token map outlives the request on the server, and none of them is written to disk in the browser.
 
-**Status:** accepted
+**Status:** accepted (narrowed by [17](17-limit-what-one-client-can-send-and-spend.md): hashed rate limit counters now outlive a request, and no patient data does)
 
 ## The problem
 

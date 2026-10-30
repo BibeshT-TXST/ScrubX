@@ -26,3 +26,4 @@ New decisions take the next number. A superseded decision stays in place and lin
 | [13](13-find-identifiers-the-detector-was-not-told-about.md) | Find identifiers the detector wasn't told about | Names in any case or script, more formats, new types, and a test that plants its own identifiers |
 | [15](15-an-override-has-to-aim-at-the-assistant.md) | An override has to aim at the assistant | Non-adherence notes and review-of-systems headers aren't attacks; a false-block gate keeps it that way |
 | [16](16-a-cue-word-is-not-part-of-the-name.md) | A cue word is not part of the name | Roles and opening words stay in the text, only the name is tokenized, and "Who" is never a person |
+| [17](17-limit-what-one-client-can-send-and-spend.md) | Limit what one client can send and spend | History has a size limit, each address gets 10 requests a minute, and a deployment can cap model calls per day |
