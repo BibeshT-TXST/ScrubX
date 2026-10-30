@@ -103,6 +103,31 @@ describe("POST /api/pipeline", () => {
   });
 });
 
+describe("POST /api/pipeline history limits", () => {
+  const turns = (count: number, chars: number) => Array(count).fill({ role: "user", content: "x".repeat(chars) });
+  const send = (history: unknown[]) => post({ patientId: "pt-001", message: "hi", history });
+
+  it.each([
+    ["a turn over 8000 characters", turns(1, 8001), "A history turn can be at most 8000 characters"],
+    ["turns over 40000 characters in total", turns(6, 8000), "History can be at most 40000 characters in total"],
+    ["the reported 1.2 million character history", turns(20, 60_000), "A history turn can be at most 8000 characters"],
+  ])("rejects %s with a clear error", async (_, history, issue) => {
+    const res = await send(history);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: "Invalid request", issues: { history: expect.arrayContaining([issue]) } });
+  });
+
+  it("rejects a turn that isn't text instead of failing while counting it", async () => {
+    expect((await send([{ role: "user", content: 5 }])).status).toBe(400);
+  });
+
+  it("accepts history exactly at both limits", async () => {
+    const res = await send(turns(5, 8000));
+    expect(res.status).toBe(200);
+    expect((await events(res)).at(-1)?.type).toBe("result");
+  });
+});
+
 describe("GET /api/patients", () => {
   it("lists summaries with two identifiers and nothing from the full record", async () => {
     const list = await (await listPatients()).json();
