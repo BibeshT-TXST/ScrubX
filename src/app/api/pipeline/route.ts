@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ChatTurnSchema, DEFAULT_ROLE } from "@/core";
+import { ChatTurnSchema, DEFAULT_ROLE, MAX_HISTORY_CHARS } from "@/core";
 import { NDJSON_CONTENT_TYPE, toNdjson, type StreamEvent } from "@/lib/ndjson";
 import { scrubx } from "@/server/scrubx";
 
@@ -12,7 +12,9 @@ const BodySchema = z.object({
   // Set by the host's auth layer. The app has one role, so the browser doesn't send it.
   role: z.string().min(1).max(40).default(DEFAULT_ROLE),
   message: z.string().trim().min(1).max(4000),
-  history: z.array(ChatTurnSchema).max(20).default([]),
+  history: z.array(ChatTurnSchema).max(20)
+    .refine((turns) => turns.reduce((total, t) => total + t.content.length, 0) <= MAX_HISTORY_CHARS, `History can be at most ${MAX_HISTORY_CHARS} characters in total`)
+    .default([]),
 });
 
 const REQUEST_ID = /^[\w.-]{1,64}$/;
