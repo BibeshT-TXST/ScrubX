@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_TURN_CHARS } from "./types";
 
 export const PatientFieldsSchema = z.object({
   name: z.string().min(1),
@@ -18,7 +19,7 @@ export const PatientContextSchema = z.object({
 
 export const ChatTurnSchema = z.object({
   role: z.enum(["user", "assistant"]),
-  content: z.string(),
+  content: z.string().max(MAX_TURN_CHARS, `A history turn can be at most ${MAX_TURN_CHARS} characters`),
 });
 
 // What the host hands us. Auth already happened upstream; `role` is trusted as-is.
