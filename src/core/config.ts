@@ -14,6 +14,7 @@ const EnvSchema = z
     // Model for the final retry when the main one is overloaded; "none" disables it.
     LLM_FALLBACK_MODEL: z.string().optional(),
     GEMINI_API_KEY: z.string().optional(),
+    DAILY_MODEL_CALL_CAP: z.coerce.number().int().positive().optional(),
     PATIENT_SOURCE: z.enum(["demo", "supabase"]).default("demo"),
     SUPABASE_URL: z.url().optional(),
     SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
@@ -45,6 +46,8 @@ export interface ScrubXConfig {
     model?: string;
     /** undefined = provider default, null = no fallback. */
     fallbackModel?: string | null;
+    /** Most model calls per day, across all clients. undefined = no cap. */
+    dailyCallCap?: number;
   };
   patientSource: "demo" | "supabase";
   /** Present when patientSource is "supabase". Server-side only. */
@@ -69,6 +72,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
       apiKey: e.GEMINI_API_KEY,
       model: e.LLM_MODEL,
       fallbackModel: e.LLM_FALLBACK_MODEL === "none" ? null : e.LLM_FALLBACK_MODEL,
+      dailyCallCap: e.DAILY_MODEL_CALL_CAP,
     },
     patientSource: e.PATIENT_SOURCE,
     ...(e.PATIENT_SOURCE === "supabase" && {
