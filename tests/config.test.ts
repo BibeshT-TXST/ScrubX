@@ -29,6 +29,15 @@ describe("loadConfig", () => {
     expect(loadConfig({}).supabase).toBeUndefined();
   });
 
+  it("reads the rate limit store under either name, and rejects half of one", () => {
+    const store = { url: "https://r.upstash.io", token: "t" };
+    expect(loadConfig({}).rateLimitStore).toBeUndefined();
+    expect(loadConfig({ UPSTASH_REDIS_REST_URL: store.url, UPSTASH_REDIS_REST_TOKEN: "t" }).rateLimitStore).toEqual(store);
+    expect(loadConfig({ KV_REST_API_URL: store.url, KV_REST_API_TOKEN: "t" }).rateLimitStore).toEqual(store);
+    expect(() => loadConfig({ UPSTASH_REDIS_REST_URL: store.url })).toThrow(/both a REST URL and a REST token/);
+    expect(() => loadConfig({ KV_REST_API_TOKEN: "t" })).toThrow(/both a REST URL and a REST token/);
+  });
+
   it("keeps trace payloads off by default for any non-demo patient source", () => {
     expect(loadConfig(SUPABASE).tracePayloads).toBe(false);
     expect(loadConfig({ ...SUPABASE, SCRUBX_TRACE_PAYLOADS: "true" }).tracePayloads).toBe(true);
