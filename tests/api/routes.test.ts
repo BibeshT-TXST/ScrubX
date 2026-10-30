@@ -138,6 +138,36 @@ describe("POST /api/pipeline history limits", () => {
   });
 });
 
+describe("POST /api/pipeline rate limit", () => {
+  
+  const hi = { patientId: "pt-001", message: "hi" };
+
+  it("returns 429 with Retry-After on the 11th request in a minute from one IP", async () => {
+    for (let i = 0; i < 10; i++) {
+      const res = await post(hi);
+      expect(res.status).toBe(200);
+      await events(res);
+    }
+
+    const limited = await post(hi);
+    expect(limited.status).toBe(429);
+    const retryAfter = Number(limited.headers.get("retry-after"));
+    expect(retryAfter).toBeGreaterThanOrEqual(1);
+    expect(retryAfter).toBeLessThanOrEqual(60);
+    expect((await limited.json()).error).toBe(`Too many requests. Try again in ${retryAfter}s.`);
+  });
+
+  it("counts invalid requests, and limits before reading the body", async () => {
+    for (let i = 0; i < 10; i++) expect((await post("{nope")).status).toBe(400);
+    expect((await post("{nope")).status).toBe(429);
+  });
+
+  it("doesn't let one address use up another's allowance", async () => {
+    for (let i = 0; i < 11; i++) await post("{nope");
+    expect((await post("{nope", { "x-forwarded-for": "203.0.113.9" })).status).toBe(400);
+  });
+});
+
 describe("GET /api/patients", () => {
   it("lists summaries with two identifiers and nothing from the full record", async () => {
     const list = await (await listPatients()).json();
