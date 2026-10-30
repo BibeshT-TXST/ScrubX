@@ -69,8 +69,10 @@ Import the repository. Vercel detects Next.js, so there's nothing to configure i
 
 1. **Add environment variables** (Settings → Environment Variables): `GEMINI_API_KEY`, plus the Supabase variables if you use it.
 2. **Turn on Deployment Protection** (Settings → Deployment Protection). On its own, ScrubX has no login, because SightX normally handles that. Without protection, anyone with the URL can use your model quota.
+3. **Add a Redis store for the rate limit** (Marketplace → Upstash Redis). It sets `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. Use the standard token: the read-only one can't count. Without a store, each server instance counts on its own, so the real limit is higher than 10 a minute.
+4. **For a public demo, set `DAILY_MODEL_CALL_CAP`.** It stops spending once the cap is reached, however many addresses the traffic comes from. It needs the store from step 3 to hold across server instances.
 
-The pipeline route allows up to 60 seconds (`maxDuration = 60`), and the model retries are capped at 50 seconds inside that, which fits Vercel's limits on every plan. Nothing is written to disk and nothing is kept between requests.
+The pipeline route allows up to 60 seconds (`maxDuration = 60`), and the model retries are capped at 50 seconds inside that, which fits Vercel's limits on every plan. Nothing is written to disk, and no patient data is kept between requests. The only thing kept is rate limit counts, which expire and are stored under a hash of the address.
 
 ## Configuration
 
@@ -81,6 +83,9 @@ Every variable is optional.
 | `GEMINI_API_KEY` | unset | Model access. Unset means every reply says it couldn't connect. |
 | `LLM_MODEL` | `gemini-3.8-flash` | Primary model. |
 | `LLM_FALLBACK_MODEL` | `gemini-3.5-flash-lite` | Model for the final retry. `none` disables it. |
+| `DAILY_MODEL_CALL_CAP` | unset (no cap) | Most model calls in 24 hours, across all clients. Past it, every reply says it couldn't connect. A call's retries don't count separately. |
+| `UPSTASH_REDIS_REST_URL` | unset | Shared rate limit counts. Unset means each server instance counts in memory. `KV_REST_API_URL` also works. |
+| `UPSTASH_REDIS_REST_TOKEN` | unset | Required with the URL. Server-side only. `KV_REST_API_TOKEN` also works. |
 | `PATIENT_SOURCE` | `demo` | `demo` (bundled synthetic patients) or `supabase`. |
 | `SUPABASE_URL` | unset | Required when `PATIENT_SOURCE=supabase`. |
 | `SUPABASE_SERVICE_ROLE_KEY` | unset | Required when `PATIENT_SOURCE=supabase`. Server-side only. |
@@ -104,7 +109,7 @@ curl -N http://localhost:3000/api/pipeline \
 |---|---|---|
 | `patientId` | yes | e.g. `pt-001`. An unknown ID returns 404. |
 | `message` | yes | 1–4000 characters. |
-| `history` | no | Up to 20 prior `{ role: "user" \| "assistant", content }` turns. ScrubX sanitizes them like the message. |
+| `history` | no | Up to 20 prior `{ role: "user" \| "assistant", content }` turns, at most 8000 characters each and 40,000 in total. ScrubX sanitizes them like the message. |
 | `role` | no | Defaults to `medical_practitioner`. In SightX, the gateway sets it from authentication. |
 
 The response streams NDJSON:
@@ -115,6 +120,10 @@ The response streams NDJSON:
 To try the API without a local server, point the same request at `https://scrub-x-ivory.vercel.app/api/pipeline`.
 
 Send an `x-request-id` header (letters, digits, `.`, `_`, `-`, up to 64 characters) to reuse your own ID. Otherwise ScrubX creates one.
+
+**Limits:**
+- **Size:** a request over any limit in the table above returns 400 with `"error": "Invalid request"`, and `issues` says which limit it broke.
+- **Rate:** 10 requests a minute per IP address, counting invalid ones. The 11th returns 429 with a `Retry-After` header in seconds. The address comes from `x-forwarded-for` on Vercel only, because anywhere else a client can fake that header. Off Vercel, all clients share the 10.
 
 Here is a blocked request, shortened to the stage and status of each span:
 
@@ -152,6 +161,8 @@ The tests also assert ScrubX's guarantees across all eight demo patients and eve
 | You see | Why | Fix |
 |---|---|---|
 | Every reply says "We couldn't connect" | No `GEMINI_API_KEY`, or the model is down after retries | Set the key, or try again |
+| Every reply says "We couldn't connect" on a deployment that has a key | `DAILY_MODEL_CALL_CAP` was reached | Wait for the 24 hours to end, or raise it |
+| "Too many requests" | Over 10 requests in a minute. Off Vercel, all clients share this | Wait the time it names |
 | Replies take 20+ seconds | The primary model is under load | `LLM_MODEL=gemini-3.5-flash-lite` |
 | The Security Division is empty | It only shows requests from this browser tab, and a refresh clears them | Send a message from Chat first |
 | The Security Division shows counts instead of text | Trace payloads are off (any non-demo source) | Intended. See `SCRUBX_TRACE_PAYLOADS` |
