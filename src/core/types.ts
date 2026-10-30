@@ -9,6 +9,10 @@ export const KNOWN_ROLES = ["medical_practitioner"] as const;
 export type Role = (typeof KNOWN_ROLES)[number];
 export const DEFAULT_ROLE: Role = "medical_practitioner";
 
+// shared limits for chat history size
+export const MAX_TURN_CHARS = 8000;
+export const MAX_HISTORY_CHARS = 40_000;
+
 // Field names Retrieval can release: structured fields plus the free-text description.
 export type PatientFieldKey = keyof PatientFields | "description";
 
