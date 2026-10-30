@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { StageSpan, Step } from "@/core/pipeline/events";
-import type { ChatTurn, DecisionAction, PipelineResult } from "@/core/types";
+import { MAX_HISTORY_CHARS, MAX_TURN_CHARS, type ChatTurn, type DecisionAction, type PipelineResult } from "@/core/types";
 
 export interface ChatMessage {
   id: string;
@@ -127,6 +127,8 @@ export const chatActions = {
 /**
  * Prior turns to send with the next request. Blocked exchanges are left out:
  * resending an injection every turn would only get it quarantined again.
+ * Keeps the newest turns that fit the server's limits, so a long conversation
+ * loses old context instead of every later request being rejected.
  */
 export function historyFor(messages: ChatMessage[]): ChatTurn[] {
   const turns: ChatTurn[] = [];
@@ -136,5 +138,20 @@ export function historyFor(messages: ChatMessage[]): ChatTurn[] {
       turns.push({ role: m.role, content: m.content });
     }
   });
-  return turns.slice(-HISTORY_TURNS);
+  
+  const recent = turns.slice(-HISTORY_TURNS);
+  let total = 0;
+  let start = recent.length;
+
+  while (start > 0) {
+    const { length } = recent[start - 1]!.content;
+    if (length > MAX_TURN_CHARS || total + length > MAX_HISTORY_CHARS) break;
+    total += length;
+    start--;
+  }
+  
+  // Never open on an answer whose question was cut.
+  if (recent[start]?.role === "assistant") start++;
+  
+  return recent.slice(start);
 }
