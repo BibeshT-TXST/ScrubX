@@ -15,16 +15,26 @@ vi.mock("@/server/scrubx", async () => {
 });
 
 let stdout: MockInstance;
+let clientIp = "";
+let nextClient = 0;
+
 beforeEach(() => {
   stdout = vi.spyOn(console, "log").mockImplementation(() => {});
+  vi.stubEnv("VERCEL", "1");
+  clientIp = `198.51.100.${++nextClient}`;
 });
-afterEach(() => vi.restoreAllMocks());
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
+
 
 function post(body: unknown, headers: Record<string, string> = {}) {
   return POST(
     new Request("http://test/api/pipeline", {
       method: "POST",
-      headers: { "content-type": "application/json", ...headers },
+      headers: { "content-type": "application/json", "x-forwarded-for": clientIp, ...headers },
       body: typeof body === "string" ? body : JSON.stringify(body),
     }),
   );
