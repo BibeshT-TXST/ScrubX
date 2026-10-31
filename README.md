@@ -121,7 +121,8 @@ Every number reruns offline with `npm run eval`. [The full results](eval/RESULTS
 
 ## Learn more
 
-- **[Run ScrubX](docs/running-scrubx.md):** local setup, Supabase, Vercel, config and the API.
+- **[Run ScrubX](docs/running-scrubx.md):** local setup, Supabase, Vercel and config.
+- **[API](docs/api.md):** the routes, with a real blocked request.
 - **[Decisions](docs/decisions/):** why it's built this way, with a real example for each choice.
 - **[Evaluation](eval/README.md):** how the test works and how to rerun it.
 - **[Embed it in another app](docs/embedding-scrubx.md):** what the host does and what ScrubX does.
