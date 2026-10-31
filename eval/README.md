@@ -9,6 +9,7 @@
 | `dataset.lock.json` | Their hashes, the author, and the detector code they were frozen against |
 | `external/` | Public sets, converted and pinned. Converted by `scripts/eval-fetch-external.mjs` |
 | `results.json`, `RESULTS.md` | The latest committed run. Generated, never edited |
+| `../docs/eval/` | Charts for the README, in light and dark, and `eval-results.csv` for Excel. Generated from `results.json`, never edited |
 
 ## Order of work
 
@@ -29,7 +30,8 @@ npm run eval -- --external    # score the public sets only
 npm run eval -- --validate    # check our rows, run no detector
 npm run eval -- --freeze --author "..."   # hash our rows
 npm run eval -- --freeze --reason "..."   # re-hash after a change, which the report then prints
-npm run eval -- --write       # also write results.json and RESULTS.md
+npm run eval -- --write       # also write results.json, RESULTS.md, the charts and the CSV
+npm run eval -- --charts      # redraw the charts and the CSV from results.json, scoring nothing
 node scripts/eval-fetch-external.mjs      # re-download the public sets (needs network)
 ```
 

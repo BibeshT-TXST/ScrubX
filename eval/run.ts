@@ -1,10 +1,11 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import type { z } from "zod";
 import { normalizeText } from "../src/core/text/normalize";
+import { chartFiles } from "./charts";
 import { observeInjectionRow, observePhiRow } from "./harness";
 import { renderResults, type Results, type SetResult } from "./report";
 import { InjectionRowSchema, parseJsonl, PhiRowSchema, type InjectionRow, type PhiRow } from "./schema";
@@ -24,6 +25,8 @@ const PHI_FILE = path("phi.jsonl");
 const INJECTION_FILE = path("injection.jsonl");
 const LOCK_FILE = path("dataset.lock.json");
 const SOURCES_FILE = path("external/sources.json");
+const RESULTS_FILE = path("results.json");
+const CHARTS_DIR = path("../docs/eval/");
 
 // The issue's minimum for each file.
 const MIN_PHI_ROWS = 200;
@@ -94,7 +97,7 @@ function freeze(author: string | undefined, reason: string | undefined) {
   const { phi, injection } = validate();
   const previous: Lock | null = existsSync(LOCK_FILE) ? JSON.parse(readFileSync(LOCK_FILE, "utf8")) : null;
   // Changing labels after seeing a score can only flatter it, so it has to be stated.
-  if (existsSync(path("results.json")) && !reason) fail("results.json exists, so these rows have been scored. Re-freezing needs --reason.");
+  if (existsSync(RESULTS_FILE) && !reason) fail("results.json exists, so these rows have been scored. Re-freezing needs --reason.");
   const lock: Lock = {
     author: author ?? previous?.author ?? fail('freezing needs --author "who wrote the rows"'),
     coreTree: previous?.coreTree ?? git("rev-parse", "HEAD:src/core"),
@@ -170,6 +173,12 @@ async function scoreOwn(lock: Lock): Promise<NonNullable<Results["own"]>> {
   };
 }
 
+function writeCharts(results: Results) {
+  mkdirSync(CHARTS_DIR, { recursive: true });
+  for (const [name, contents] of Object.entries(chartFiles(results))) writeFileSync(`${CHARTS_DIR}${name}`, contents);
+  console.error(`Wrote charts and the CSV to docs/eval/.`);
+}
+
 async function main() {
   const { values } = parseArgs({
     options: {
@@ -177,6 +186,7 @@ async function main() {
       freeze: { type: "boolean", default: false },
       external: { type: "boolean", default: false },
       write: { type: "boolean", default: false },
+      charts: { type: "boolean", default: false },
       author: { type: "string" },
       reason: { type: "string" },
     },
@@ -184,6 +194,10 @@ async function main() {
 
   if (values.validate) return void validate();
   if (values.freeze) return freeze(values.author, values.reason);
+  if (values.charts) {
+    if (!existsSync(RESULTS_FILE)) fail("no results.json. Run --write first.");
+    return writeCharts(JSON.parse(readFileSync(RESULTS_FILE, "utf8")));
+  }
   if (values.write && values.external) fail("--write needs the full run, not --external.");
   if (values.write && uncommitted("src/core")) fail("commit src/core first, so the results describe a real commit.");
 
@@ -195,8 +209,9 @@ async function main() {
   const markdown = renderResults(results);
   console.log(markdown);
   if (values.write) {
-    writeFileSync(path("results.json"), `${JSON.stringify(results, null, 2)}\n`);
+    writeFileSync(RESULTS_FILE, `${JSON.stringify(results, null, 2)}\n`);
     writeFileSync(path("RESULTS.md"), `${markdown}\n`);
+    writeCharts(results);
   }
 }
 
