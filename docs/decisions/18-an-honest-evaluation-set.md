@@ -45,7 +45,7 @@ Every rate prints `k/n` and a 95% Wilson interval. Under 20 items it prints no p
 They never reach block/flag/allow, so a block rate would always read 0%. An attack counts as caught only if its own sentence was removed from what the model received.
 
 ### 8. External sets, unchanged, as the correction
-[ASQ-PHI](https://pmc.ncbi.nlm.nih.gov/articles/PMC12926592/) and [NotInject](https://arxiv.org/abs/2410.22770) are vendored at pinned revisions and reported separately, never pooled. Both are MIT licensed; see [eval/README.md](../../eval/README.md). Rules don't get tuned against them before a first published score.
+[ASQ-PHI](https://pmc.ncbi.nlm.nih.gov/articles/PMC12926592/) and [NotInject](https://arxiv.org/abs/2410.22770) are vendored at pinned revisions and reported separately, never pooled. Both are MIT licensed; see [eval/external/README.md](../../eval/external/README.md). Rules don't get tuned against them before a first published score.
 
 ### 9. The gate's margin is zero, per item
 Issue #14 asked CI to fail if recall drops by more than a set margin. A margin allows for sampling noise, and this run has none: the same rows and the same code give the same result, so any difference is a real change. A margin of 1 point on 300 mentions would let 3 new leaks through. A significance test is worse: exact McNemar with 5 new misses and no fixes gives p = 0.0625, which would pass all 5.
