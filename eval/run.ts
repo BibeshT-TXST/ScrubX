@@ -6,6 +6,7 @@ import { parseArgs } from "node:util";
 import type { z } from "zod";
 import { normalizeText } from "../src/core/text/normalize";
 import { chartFiles } from "./charts";
+import { compareResults } from "./gate";
 import { observeInjectionRow, observePhiRow } from "./harness";
 import { renderResults, type Results, type SetResult } from "./report";
 import { InjectionRowSchema, parseJsonl, PhiRowSchema, type InjectionRow, type PhiRow } from "./schema";
@@ -179,6 +180,42 @@ function writeCharts(results: Results) {
   console.error(`Wrote charts and the CSV to docs/eval/.`);
 }
 
+const committedResults = (): Results | null => (existsSync(RESULTS_FILE) ? JSON.parse(readFileSync(RESULTS_FILE, "utf8")) : null);
+
+async function scoreAll(externalOnly: boolean, accepted: Results["accepted"]): Promise<Results> {
+  return {
+    commit: git("rev-parse", "--short", "HEAD"),
+    accepted,
+    own: externalOnly ? null : await scoreOwn(requireFrozen()),
+    external: await scoreExternal(),
+  };
+}
+
+const describeRegressions = (regressions: readonly string[]) =>
+  `${regressions.length} item(s) got worse than the committed results:\n${regressions.map((line) => `  ${line}`).join("\n")}`;
+
+/** Generated files must be exactly what results.json produces, or a chart could say something the data doesn't. */
+function generatedDrift(results: Results): string[] {
+  const expected: [string, string][] = [
+    [path("RESULTS.md"), `${renderResults(results)}\n`],
+    ...Object.entries(chartFiles(results)).map(([name, contents]): [string, string] => [`${CHARTS_DIR}${name}`, contents]),
+  ];
+  return expected.filter(([file, contents]) => !existsSync(file) || readFileSync(file, "utf8") !== contents).map(([file]) => file);
+}
+
+/** The CI gate. Scores everything and compares each item to what is committed, with no margin. */
+function check(now: Results) {
+  const base = committedResults() ?? fail("no results.json to compare to. Run --write first.");
+  const { regressions, improvements, dataChanged, outOfDate } = compareResults(base, now);
+  if (regressions.length) fail(`${describeRegressions(regressions)}\n\nFix them, or accept them on purpose with --write --accept "why".`);
+  if (dataChanged.length) fail(`the rows changed in: ${dataChanged.join(", ")}. Run --write and commit.`);
+  if (improvements.length) fail(`${improvements.length} item(s) got better:\n${improvements.map((line) => `  ${line}`).join("\n")}\n\nRun --write and commit, so the results show it.`);
+  if (outOfDate) fail("results.json is out of date, though no item got worse. Run --write and commit.");
+  const drift = generatedDrift(base);
+  if (drift.length) fail(`these don't match results.json. Run --charts or --write, and don't edit them by hand:\n${drift.join("\n")}`);
+  console.log("Eval gate passed: no regression on these items. The known failures in eval/RESULTS.md are still there.");
+}
+
 async function main() {
   const { values } = parseArgs({
     options: {
@@ -187,6 +224,8 @@ async function main() {
       external: { type: "boolean", default: false },
       write: { type: "boolean", default: false },
       charts: { type: "boolean", default: false },
+      check: { type: "boolean", default: false },
+      accept: { type: "string" },
       author: { type: "string" },
       reason: { type: "string" },
     },
@@ -198,14 +237,18 @@ async function main() {
     if (!existsSync(RESULTS_FILE)) fail("no results.json. Run --write first.");
     return writeCharts(JSON.parse(readFileSync(RESULTS_FILE, "utf8")));
   }
+  if (values.check) return check(await scoreAll(false, committedResults()?.accepted ?? []));
   if (values.write && values.external) fail("--write needs the full run, not --external.");
   if (values.write && uncommitted("src/core")) fail("commit src/core first, so the results describe a real commit.");
 
-  const results: Results = {
-    commit: git("rev-parse", "--short", "HEAD"),
-    own: values.external ? null : await scoreOwn(requireFrozen()),
-    external: await scoreExternal(),
-  };
+  const base = committedResults();
+  const results = await scoreAll(values.external, base?.accepted ?? []);
+  if (values.write) {
+    const regressions = base ? compareResults(base, results).regressions : [];
+    if (regressions.length && !values.accept) fail(`${describeRegressions(regressions)}\n\nFix them, or accept them on purpose with --write --accept "why".`);
+    if (values.accept && !regressions.length) fail("--accept was given, but nothing got worse.");
+    if (values.accept) results.accepted = [...results.accepted, { commit: results.commit, reason: values.accept, items: regressions }];
+  }
   const markdown = renderResults(results);
   console.log(markdown);
   if (values.write) {

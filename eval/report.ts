@@ -7,8 +7,16 @@ export interface SetResult<T> {
   summary: T;
 }
 
+export interface AcceptedRegression {
+  commit: string;
+  reason: string;
+  items: string[];
+}
+
 export interface Results {
   commit: string;
+  /** Items someone chose to let get worse, and why. Carried forward from run to run. */
+  accepted: AcceptedRegression[];
   /** Null when only the external sets were scored. */
   own: {
     author: string;
@@ -157,6 +165,13 @@ export function renderResults(r: Results): string {
     "- PHI is scored on the message path only. Record text is scored for embedded instructions, not for PHI.",
     "- A leak means any letter or digit of a gold value stayed unmasked. Over-masking is measured separately by the false-detection and precision rows.",
     "",
+    ...(r.accepted.length
+      ? [
+          "## Regressions accepted on purpose",
+          "",
+          ...r.accepted.flatMap((a) => [`**At \`${a.commit}\`: ${a.reason}**`, "", ...a.items.map((item) => `- ${item}`), ""]),
+        ]
+      : []),
     ...(r.own
       ? [
           "## Our own set",

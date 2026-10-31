@@ -147,16 +147,28 @@ describe("renderResults", () => {
   const own = { author: "A", untuned: true, changes: [], phi: set(phi), injection: set(injection) };
 
   it("always carries the limits next to the numbers", () => {
-    const md = renderResults({ commit: "abc", own, external: { phi: [], injection: [] } });
+    const md = renderResults({ commit: "abc", accepted: [], own, external: { phi: [], injection: [] } });
     expect(md).toContain("do not predict performance on real clinical text");
     expect(md).toContain("not security claims");
     expect(md).toContain("not a HIPAA compliance claim");
     expect(md).toContain("No independent human agreement");
   });
 
+  it("prints regressions accepted on purpose, above the numbers", () => {
+    const md = renderResults({
+      commit: "abc",
+      accepted: [{ commit: "def", reason: "Traded for fewer false blocks", items: ['PHI: missed in p1 "Ann" (NAME): 0 -> 1'] }],
+      own,
+      external: { phi: [], injection: [] },
+    });
+    expect(md).toContain("Traded for fewer false blocks");
+    expect(md.indexOf("Traded for fewer")).toBeLessThan(md.indexOf("## Our own set"));
+    expect(renderResults({ commit: "abc", accepted: [], own, external: { phi: [], injection: [] } })).not.toContain("accepted on purpose");
+  });
+
   it("says when the detectors changed after the freeze", () => {
-    const tuned = renderResults({ commit: "abc", own: { ...own, untuned: false }, external: { phi: [], injection: [] } });
+    const tuned = renderResults({ commit: "abc", accepted: [], own: { ...own, untuned: false }, external: { phi: [], injection: [] } });
     expect(tuned).toContain("Its rows have been seen");
-    expect(renderResults({ commit: "abc", own, external: { phi: [], injection: [] } })).toContain("untuned scores");
+    expect(renderResults({ commit: "abc", accepted: [], own, external: { phi: [], injection: [] } })).toContain("untuned scores");
   });
 });

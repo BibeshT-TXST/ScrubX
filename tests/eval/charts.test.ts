@@ -8,6 +8,7 @@ const set = <T>(name: string, summary: T) => ({ name, sha256: "abc", provenance:
 function results(phi: Partial<PhiSummary> = {}, untuned = true): Results {
   return {
     commit: "abc1234",
+    accepted: [],
     own: {
       author: "A <writer>",
       untuned,

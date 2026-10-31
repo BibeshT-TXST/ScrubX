@@ -206,6 +206,9 @@ export interface PhiSummary {
   precisionByLabel: Record<string, Rate>;
   misses: { rowId: string; value: string; type: GoldType; scope: Gold["scope"]; monthYear: boolean }[];
   falsePositiveRows: string[];
+  /** Every label that touched no gold, on any row. The gate needs these to catch over-masking. */
+  falseLabels: { rowId: string; type: PhiType }[];
+  wrongPersonMentions: { rowId: string; value: string }[];
 }
 
 // Below this a group is too thin to be called the worst with a straight face.
@@ -263,6 +266,8 @@ export function summarizePhi(results: readonly PhiRowResult[]): PhiSummary {
       .filter((m) => !m.masked)
       .map(({ rowId, value, type, scope, monthYear }) => ({ rowId, value, type, scope, monthYear })),
     falsePositiveRows: phiFree.filter((r) => r.falseLabels.length > 0).map((r) => r.rowId),
+    falseLabels: results.flatMap((r) => r.falseLabels.map((type) => ({ rowId: r.rowId, type }))),
+    wrongPersonMentions: mentions.filter((m) => m.wrongPerson).map(({ rowId, value }) => ({ rowId, value })),
   };
 }
 
@@ -316,6 +321,7 @@ export interface InjectionSummary {
   recordAttacksRemoved: Rate;
   recordBenignQuarantined: Rate;
   missedAttacks: string[];
+  flaggedAttacks: string[];
   falseBlocks: string[];
   falseFlags: string[];
   missedRecordAttacks: string[];
@@ -354,6 +360,7 @@ export function summarizeInjection(results: readonly InjectionRowResult[]): Inje
     recordAttacksRemoved: count(recordAttacks, (r) => r.payloadRemoved === true),
     recordBenignQuarantined: count(recordBenign, (r) => r.quarantined > 0),
     missedAttacks: ids(attacks, (r) => r.action === "allow"),
+    flaggedAttacks: ids(attacks, (r) => r.action === "flag"),
     falseBlocks: ids(benign, (r) => r.action === "block"),
     falseFlags: ids(benign, (r) => r.action === "flag"),
     missedRecordAttacks: ids(recordAttacks, (r) => r.payloadRemoved !== true),
