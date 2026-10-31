@@ -62,4 +62,9 @@ Conversion changes to ASQ-PHI, made to every row:
 
 ## Label corrections
 
-None yet.
+Made before the first scored run. Types and scopes did not change.
+
+| Row | Was | Now | Why |
+|---|---|---|---|
+| `phi-089` | `4471` | `x4471` | The text reads `x4471`, and a gold value has to match a whole token |
+| `phi-124` | `2026-10-29` | `2026-10-29T14:32` | The text reads `2026-10-29T14:32`, and a gold value has to match a whole token |
