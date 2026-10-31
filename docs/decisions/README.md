@@ -24,6 +24,8 @@ New decisions take the next number. A superseded decision stays in place and lin
 | [11](11-clinical-ui.md) | Clinical UI rules | The right patient is unmistakable and numbers can't be misread |
 | [12](12-show-the-record-scrub.md) | Show the record scrub; audit line stays in the log | You see exactly what the model received |
 | [13](13-find-identifiers-the-detector-was-not-told-about.md) | Find identifiers the detector wasn't told about | Names in any case or script, more formats, new types, and a test that plants its own identifiers |
+| [14](14-same-surname-is-not-the-patient.md) | Someone with the patient's surname is not the patient | A clinician title or a different given name marks another person: still masked, never restored as the patient |
 | [15](15-an-override-has-to-aim-at-the-assistant.md) | An override has to aim at the assistant | Non-adherence notes and review-of-systems headers aren't attacks; a false-block gate keeps it that way |
 | [16](16-a-cue-word-is-not-part-of-the-name.md) | A cue word is not part of the name | Roles and opening words stay in the text, only the name is tokenized, and "Who" is never a person |
 | [17](17-limit-what-one-client-can-send-and-spend.md) | Limit what one client can send and spend | History has a size limit, each address gets 10 requests a minute, and a deployment can cap model calls per day |
+| [18](18-an-honest-evaluation-set.md) | Measure on rows nobody tuned on, and publish the first score | `npm run eval` scores the real pipeline, refuses to run until the rows are committed, and says whether the detectors have changed since |
