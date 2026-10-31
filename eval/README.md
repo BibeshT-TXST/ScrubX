@@ -1,92 +1,58 @@
-# Evaluation
+# How ScrubX is tested
 
-`npm run eval` runs labeled sets through the real pipeline and reports what it caught. It runs offline in a few seconds. The reasoning is in [decision 18](../docs/decisions/18-an-honest-evaluation-set.md).
+It's easy to make a detector look good: write the test after the rules, then tune until it passes. This evaluation is built to make that hard. The test rows were written away from the code and committed before anything was scored, and the first score was published whatever it said.
 
-| File | What it is |
-|---|---|
-| `AUTHORING_PROMPT.md` | The written plan and labeling rules, handed to whoever writes the rows |
-| `phi.jsonl`, `injection.jsonl` | Our own labeled sets |
-| `dataset.lock.json` | Their hashes, the author, and the detector code they were frozen against |
-| `external/` | Public sets, converted and pinned. Converted by `scripts/eval-fetch-external.mjs` |
-| `results.json`, `RESULTS.md` | The latest committed run. Generated, never edited |
-| `../docs/eval/` | Charts for the README, in light and dark, and `eval-results.csv` for Excel. Generated from `results.json`, never edited |
+It said ScrubX [misses about half of the identifiers and most of the attacks](../README.md#how-well-it-works).
 
-## Order of work
+**[Read the full results →](RESULTS.md)** Every miss is listed by row, and the numbers are also in [a spreadsheet](../docs/eval/eval-results.csv).
 
-Nothing in `src/core` changes until step 6 is committed. That first score is the only one no tuning can have influenced.
+## Where it misses
 
-1. Paste `AUTHORING_PROMPT.md` into a chat with no access to this repo. Save the rows as `eval/phi.jsonl` and `eval/injection.jsonl`.
-2. `npm run eval -- --validate`. This checks the rows and runs no detector.
-3. Read the labels and correct only those that break the written rules. Don't drop a row because it looks hard, and list every correction under "Label corrections" below.
-4. `npm run eval -- --freeze --author "who wrote the rows"`.
-5. Commit the rows and `dataset.lock.json`. Scoring refuses to run until they are committed, so `git log` proves the rows came before the score.
-6. `npm run eval -- --write`, then commit `results.json` and `RESULTS.md`, whatever they say.
+The root README shows misses by identifier type. Here are two more views.
 
-## Commands
+**By text style.** Misses are heaviest in text without normal capitalization: 84% in all lowercase and 71% in all caps, against 48% in normal text.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../docs/eval/phi-by-shape-dark.svg">
+  <img alt="Share of identifiers missed by text style on our test set: 84% in all lowercase, 71% in all caps, 48% in normal text and 12% in pasted text with markup. Full numbers are in RESULTS.md." src="../docs/eval/phi-by-shape-light.svg">
+</picture>
+
+**By kind of attack.** The rules know the usual wording, so rephrasing beats them. Paraphrased overrides got through 14 times out of 15, and attacks in other languages 13 out of 15.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../docs/eval/injection-outcomes-dark.svg">
+  <img alt="Attack and harmless messages by outcome. 51 of 70 attack messages were allowed, and 1 of 75 harmless clinical messages was blocked. Full numbers are in RESULTS.md." src="../docs/eval/injection-outcomes-light.svg">
+</picture>
+
+## How the test stays honest
+
+- **The rows are written away from the code.** [A written plan](AUTHORING_PROMPT.md) goes into a chat with no access to this repo. Labels are corrected only where they break the plan's rules, and a row is never dropped for being hard.
+- **The rows come before the score.** Scoring refuses to run until the rows and their hashes are committed, so `git log` proves the order.
+- **The report labels itself.** It says "untuned" only while the detectors match the code the rows were frozen against. After any change, it calls them development scores.
+- **Public sets check our own.** [ASQ-PHI and NotInject](external/README.md) are scored separately and never pooled with our rows.
+
+This doesn't make the test fully independent. The same person wrote the detectors and directed the rows, and no independent person has checked the labels.
+
+## How it's scored
+
+- **A partly masked name is a miss.** A value counts as caught only if every letter and digit is masked.
+- **A block isn't a catch.** A blocked message sends no prompt, so it's scored from its labels. Otherwise a block would look like no leak.
+- **Masking everything doesn't help.** Precision is reported for each label, and any new false label fails CI.
+- **Small groups get no percentage.** Every rate shows its count and a 95% interval, and under 20 items it shows only the count.
+
+## Run it
 
 ```bash
-npm run eval                  # score everything, print the report
-npm run eval -- --external    # score the public sets only
-npm run eval -- --validate    # check our rows, run no detector
-npm run eval -- --freeze --author "..."   # hash our rows
-npm run eval -- --freeze --reason "..."   # re-hash after a change, which the report then prints
-npm run eval -- --write       # also write results.json, RESULTS.md, the charts and the CSV
-npm run eval -- --charts      # redraw the charts and the CSV from results.json, scoring nothing
-npm run eval -- --check       # the CI gate: fail if anything differs from what is committed
-npm run eval -- --write --accept "why"   # record a regression on purpose
-node scripts/eval-fetch-external.mjs      # re-download the public sets (needs network)
+npm run eval             # score everything and print the report
+npm run eval -- --check  # the same check CI runs
 ```
 
-## After the first run
+It runs offline in a few seconds. On every pull request, CI compares each item to the committed results, with no margin. The same rows and the same code give the same result, so any difference is a real change.
 
-- `RESULTS.md` says on its own when `src/core` has changed since the freeze. From then on these rows have been seen, so the report calls the scores development scores, and they say nothing about unseen text.
-- Showing a real gain after tuning needs rows nobody has tuned on: write a small new set the same way.
-- A change to a label after scoring needs `--reason`, and the reason is printed in the report. Fix labels by rule across all rows, not only on the failures, because fixing failures alone can only raise a score.
+A green check means nothing got worse. It doesn't mean ScrubX is good: today's failures are recorded as expected, so they pass until someone fixes them.
 
-## The gate
+## Learn more
 
-`npm run eval -- --check` runs in [CI](../.github/workflows/ci.yml) and compares every item to the committed `results.json`. There is no margin: the same rows and the same code give the same result, so any difference is a real change.
-
-| What happened | CI |
-|---|---|
-| A missed value, a false label on any row, or a third party labeled as the patient is new | Fails, and lists each item |
-| An attack weakened (blocked to flagged to allowed), or a harmless message got stricter | Fails, and lists each item |
-| An attack in record text reached the model, or harmless record text was removed | Fails, and lists each item |
-| Something got better, or anything else in the results changed | Fails until you run `--write` and commit, so the results stay true |
-| `src/core` changed but no score did | Fails until you run `--write`, because the "untuned" label would otherwise be wrong |
-| `RESULTS.md`, a chart or the CSV doesn't match `results.json` | Fails. They are generated, so don't edit them |
-| The rows don't match the lock | Fails |
-
-`--write` refuses a regression too. To accept one, pass `--accept "why"`, and the items and the reason are printed at the top of `RESULTS.md` from then on.
-
-A green gate means no regression on these items. It doesn't mean ScrubX is good: the first baseline recorded today's failures as expected, so they pass the gate until someone fixes them.
-
-## External sets
-
-| Set | Rows | Licence | Source |
-|---|---|---|---|
-| ASQ-PHI | 1,051 | MIT, © 2025 James Weatherhead | [github.com/JamesWeatherhead/asq-phi](https://github.com/JamesWeatherhead/asq-phi), paper: Weatherhead, Golovko & McCaffrey (2026), *Data in Brief* 65, 112586 |
-| NotInject | 339 | MIT, © 2024 Hao Li | [huggingface.co/datasets/leolee99/NotInject](https://huggingface.co/datasets/leolee99/NotInject), code: [InjecGuard](https://github.com/SaFoLab-WISC/InjecGuard) |
-
-The MIT notice applies to the files in `external/`, which are converted copies of these sets:
-
-> Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Conversion changes to ASQ-PHI, made to every row:
-
-- Its types are mapped to ours.
-- A title or field word in front of a gold value is removed. Scoring "Dr" as a leak was wrong, and it was found after the first run: leak recall moved from 50.6% to 51.3%.
-- A month with no day is marked `monthYear`.
-
-## Label corrections
-
-Made before the first scored run. Types and scopes did not change.
-
-| Row | Was | Now | Why |
-|---|---|---|---|
-| `phi-089` | `4471` | `x4471` | The text reads `x4471`, and a gold value has to match a whole token |
-| `phi-124` | `2026-10-29` | `2026-10-29T14:32` | The text reads `2026-10-29T14:32`, and a gold value has to match a whole token |
+- **[Running the evaluation](RUNNING.md):** every command, what fails CI, and the order of work for writing rows.
+- **[Public test sets](external/README.md):** sources, licences and how they were converted.
+- **[Decision 18](../docs/decisions/18-an-honest-evaluation-set.md):** why it works this way, and what it costs.
