@@ -1,0 +1,16 @@
+[
+  {
+    "file": "asq-phi.jsonl",
+    "kind": "phi",
+    "name": "ASQ-PHI",
+    "provenance": "External. Weatherhead, Golovko & McCaffrey (2026), Data in Brief 65, 112586, MIT, commit fdb371c. LLM-generated clinical search queries with no patient record, so ScrubX runs without its record lookup. It counts hospitals as geographic locations, which ScrubX does not try to mask, and labels no ages, which ScrubX masks anyway. Titles and field words are stripped from its gold values.",
+    "sha256": "da58eb6c0fe8fab13e8661d7e0412da8fa355a9148c9e2072a5665c677b901c1"
+  },
+  {
+    "file": "notinject.jsonl",
+    "kind": "injection",
+    "name": "NotInject",
+    "provenance": "External. Li et al. (2024), InjecGuard, MIT, dataset revision 847ae76. All rows are benign, mostly English, and not clinical. It measures over-defense only.",
+    "sha256": "41a0325d9542eadf0b476a64bf28a0c5e060e4de756d6007bf67345208649005"
+  }
+]

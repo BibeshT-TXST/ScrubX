@@ -1,0 +1,207 @@
+set,measure,item,count,total,percent,ci_low_percent,ci_high_percent,note
+Our set: PHI,Leak recall,"Safe Harbor, read literally",162,331,48.9,43.6,54.3,
+Our set: PHI,Leak recall,"Safe Harbor, without month-year",162,326,49.7,44.3,55.1,
+Our set: PHI,Leak recall,Outside Safe Harbor,20,54,37.0,25.4,50.4,
+Our set: PHI,Rows fully masked,Safe Harbor,89,210,42.4,35.9,49.1,
+Our set: PHI,False detection,PHI-free rows with any label,2,30,6.7,1.8,21.3,
+Our set: PHI,False detection,"PHI-free rows, ignoring age labels",2,30,6.7,1.8,21.3,
+Our set: PHI,Wrong person,Third-party names labeled as the patient,8,138,5.8,3.0,11.0,
+Our set: PHI,Leak recall by group,Ages,1,12,,,,too few to estimate
+Our set: PHI,"Recall by group, right group",Ages,1,12,,,,too few to estimate
+Our set: PHI,Leak recall by group,Dates,21,46,45.7,32.2,59.8,
+Our set: PHI,"Recall by group, right group",Dates,22,46,47.8,34.1,61.9,
+Our set: PHI,Leak recall by group,"Email, URL and IP",10,13,,,,too few to estimate
+Our set: PHI,"Recall by group, right group","Email, URL and IP",10,13,,,,too few to estimate
+Our set: PHI,Leak recall by group,IDs,17,36,47.2,32.0,63.0,
+Our set: PHI,"Recall by group, right group",IDs,17,36,47.2,32.0,63.0,
+Our set: PHI,Leak recall by group,Names,86,150,57.3,49.3,65.0,
+Our set: PHI,"Recall by group, right group",Names,94,150,62.7,54.7,70.0,
+Our set: PHI,Leak recall by group,Phone and fax,10,20,50.0,29.9,70.1,
+Our set: PHI,"Recall by group, right group",Phone and fax,13,20,65.0,43.3,81.9,
+Our set: PHI,Leak recall by group,Places and employers,17,54,31.5,20.7,44.7,
+Our set: PHI,"Recall by group, right group",Places and employers,12,54,22.2,13.2,34.9,
+Our set: PHI,Leak recall by type,ADDRESS,14,52,26.9,16.8,40.3,
+Our set: PHI,"Recall by type, right group",ADDRESS,12,52,23.1,13.7,36.1,
+Our set: PHI,Leak recall by type,AGE,2,27,7.4,2.1,23.4,
+Our set: PHI,"Recall by type, right group",AGE,5,27,18.5,8.2,36.7,
+Our set: PHI,Leak recall by type,BIOMETRIC,0,5,,,,too few to estimate
+Our set: PHI,"Recall by type, right group",BIOMETRIC,0,5,,,,too few to estimate
+Our set: PHI,Leak recall by type,DATE,21,46,45.7,32.2,59.8,
+Our set: PHI,"Recall by type, right group",DATE,22,46,47.8,34.1,61.9,
+Our set: PHI,Leak recall by type,EMAIL,7,8,,,,too few to estimate
+Our set: PHI,"Recall by type, right group",EMAIL,7,8,,,,too few to estimate
+Our set: PHI,Leak recall by type,FAX,4,4,,,,too few to estimate
+Our set: PHI,"Recall by type, right group",FAX,4,4,,,,too few to estimate
+Our set: PHI,Leak recall by type,ID,9,20,45.0,25.8,65.8,
+Our set: PHI,"Recall by type, right group",ID,9,20,45.0,25.8,65.8,
+Our set: PHI,Leak recall by type,IP,0,2,,,,too few to estimate
+Our set: PHI,"Recall by type, right group",IP,0,2,,,,too few to estimate
+Our set: PHI,Leak recall by type,MRN,7,7,,,,too few to estimate
+Our set: PHI,"Recall by type, right group",MRN,7,7,,,,too few to estimate
+Our set: PHI,Leak recall by type,NAME,104,182,57.1,49.9,64.1,
+Our set: PHI,"Recall by type, right group",NAME,112,182,61.5,54.3,68.3,
+Our set: PHI,Leak recall by type,ORG,4,9,,,,too few to estimate
+Our set: PHI,"Recall by type, right group",ORG,0,9,,,,too few to estimate
+Our set: PHI,Leak recall by type,PHONE,6,16,,,,too few to estimate
+Our set: PHI,"Recall by type, right group",PHONE,9,16,,,,too few to estimate
+Our set: PHI,Leak recall by type,SSN,1,4,,,,too few to estimate
+Our set: PHI,"Recall by type, right group",SSN,1,4,,,,too few to estimate
+Our set: PHI,Leak recall by type,URL,3,3,,,,too few to estimate
+Our set: PHI,"Recall by type, right group",URL,3,3,,,,too few to estimate
+Our set: PHI,Leak recall by text shape,allcaps,8,28,28.6,15.3,47.1,
+Our set: PHI,Leak recall by text shape,lowercase,5,32,15.6,6.9,31.8,
+Our set: PHI,Leak recall by text shape,messy,22,25,88.0,70.0,95.8,
+Our set: PHI,Leak recall by text shape,plain,127,246,51.6,45.4,57.8,
+Our set: PHI,Leak recall by name owner,other,75,138,54.3,46.0,62.4,
+Our set: PHI,Leak recall by name owner,patient,29,44,65.9,51.1,78.1,
+Our set: PHI,Precision by ScrubX label,ADDRESS,6,6,,,,too few to estimate
+Our set: PHI,Precision by ScrubX label,AGE,5,5,,,,too few to estimate
+Our set: PHI,Precision by ScrubX label,DATE,22,22,100.0,85.1,100.0,
+Our set: PHI,Precision by ScrubX label,EMAIL,7,7,,,,too few to estimate
+Our set: PHI,Precision by ScrubX label,ID,9,9,,,,too few to estimate
+Our set: PHI,Precision by ScrubX label,LOCATION,5,6,,,,too few to estimate
+Our set: PHI,Precision by ScrubX label,MRN,7,7,,,,too few to estimate
+Our set: PHI,Precision by ScrubX label,PATIENT,37,39,94.9,83.1,98.6,
+Our set: PHI,Precision by ScrubX label,PERSON,92,96,95.8,89.8,98.4,
+Our set: PHI,Precision by ScrubX label,PHONE,13,13,,,,too few to estimate
+Our set: PHI,Precision by ScrubX label,SSN,1,1,,,,too few to estimate
+Our set: PHI,Precision by ScrubX label,URL,3,3,,,,too few to estimate
+Our set: PHI,Precision by ScrubX label,ZIP,2,3,,,,too few to estimate
+Our set: injection,Attacks,Allowed (got through),51,70,72.9,61.5,81.9,
+Our set: injection,Attacks,Blocked,14,70,20.0,12.3,30.8,
+Our set: injection,Attacks,Blocked or flagged,19,70,27.1,18.1,38.5,
+Our set: injection,Harmless messages,Blocked,1,75,1.3,0.2,7.2,
+Our set: injection,Harmless messages,Flagged,2,75,2.7,0.7,9.2,
+Our set: injection,Record text,Attacks removed,8,20,40.0,21.9,61.3,
+Our set: injection,Record text,Benign text removed,0,5,,,,too few to estimate
+Our set: injection,Outcome by category,attack: exfiltration: block,2,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: exfiltration: flag,1,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: exfiltration: allow,7,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: obfuscated: block,4,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: obfuscated: flag,2,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: obfuscated: allow,4,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: other_language: block,2,15,,,,too few to estimate
+Our set: injection,Outcome by category,attack: other_language: flag,0,15,,,,too few to estimate
+Our set: injection,Outcome by category,attack: other_language: allow,13,15,,,,too few to estimate
+Our set: injection,Outcome by category,attack: override_direct: block,4,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: override_direct: flag,0,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: override_direct: allow,6,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: override_paraphrase: block,1,15,,,,too few to estimate
+Our set: injection,Outcome by category,attack: override_paraphrase: flag,0,15,,,,too few to estimate
+Our set: injection,Outcome by category,attack: override_paraphrase: allow,14,15,,,,too few to estimate
+Our set: injection,Outcome by category,attack: role_persona: block,1,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: role_persona: flag,2,10,,,,too few to estimate
+Our set: injection,Outcome by category,attack: role_persona: allow,7,10,,,,too few to estimate
+Our set: injection,Outcome by category,benign: clinical_plain: block,0,15,,,,too few to estimate
+Our set: injection,Outcome by category,benign: clinical_plain: flag,0,15,,,,too few to estimate
+Our set: injection,Outcome by category,benign: clinical_plain: allow,15,15,,,,too few to estimate
+Our set: injection,Outcome by category,benign: clinical_trigger_words: block,1,60,1.7,0.3,8.9,
+Our set: injection,Outcome by category,benign: clinical_trigger_words: flag,2,60,3.3,0.9,11.4,
+Our set: injection,Outcome by category,benign: clinical_trigger_words: allow,57,60,95.0,86.3,98.3,
+Our set: injection,Outcome by language,attack: ar: block,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: ar: flag,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: ar: allow,2,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: de: block,1,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: de: flag,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: de: allow,1,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: en: block,13,56,23.2,14.1,35.8,
+Our set: injection,Outcome by language,attack: en: flag,5,56,8.9,3.9,19.3,
+Our set: injection,Outcome by language,attack: en: allow,38,56,67.9,54.8,78.6,
+Our set: injection,Outcome by language,attack: es: block,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: es: flag,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: es: allow,2,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: fr: block,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: fr: flag,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: fr: allow,2,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: hi: block,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: hi: flag,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: hi: allow,2,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: pt: block,0,1,,,,too few to estimate
+Our set: injection,Outcome by language,attack: pt: flag,0,1,,,,too few to estimate
+Our set: injection,Outcome by language,attack: pt: allow,1,1,,,,too few to estimate
+Our set: injection,Outcome by language,attack: vi: block,0,1,,,,too few to estimate
+Our set: injection,Outcome by language,attack: vi: flag,0,1,,,,too few to estimate
+Our set: injection,Outcome by language,attack: vi: allow,1,1,,,,too few to estimate
+Our set: injection,Outcome by language,attack: zh: block,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: zh: flag,0,2,,,,too few to estimate
+Our set: injection,Outcome by language,attack: zh: allow,2,2,,,,too few to estimate
+Our set: injection,Outcome by language,benign: en: block,1,75,1.3,0.2,7.2,
+Our set: injection,Outcome by language,benign: en: flag,2,75,2.7,0.7,9.2,
+Our set: injection,Outcome by language,benign: en: allow,72,75,96.0,88.9,98.6,
+ASQ-PHI,Leak recall,"Safe Harbor, read literally",1527,2975,51.3,49.5,53.1,
+ASQ-PHI,Leak recall,"Safe Harbor, without month-year",1527,2966,51.5,49.7,53.3,
+ASQ-PHI,Leak recall,Outside Safe Harbor,0,0,,,,too few to estimate
+ASQ-PHI,Rows fully masked,Safe Harbor,45,832,5.4,4.1,7.2,
+ASQ-PHI,False detection,PHI-free rows with any label,179,219,81.7,76.1,86.3,
+ASQ-PHI,False detection,"PHI-free rows, ignoring age labels",19,219,8.7,5.6,13.2,
+ASQ-PHI,Wrong person,Third-party names labeled as the patient,0,814,0.0,0.0,0.5,
+ASQ-PHI,Leak recall by group,Dates,774,806,96.0,94.4,97.2,
+ASQ-PHI,"Recall by group, right group",Dates,784,806,97.3,95.9,98.2,
+ASQ-PHI,Leak recall by group,"Email, URL and IP",30,32,93.8,79.9,98.3,
+ASQ-PHI,"Recall by group, right group","Email, URL and IP",30,32,93.8,79.9,98.3,
+ASQ-PHI,Leak recall by group,IDs,228,448,50.9,46.3,55.5,
+ASQ-PHI,"Recall by group, right group",IDs,247,448,55.1,50.5,59.7,
+ASQ-PHI,Leak recall by group,Names,305,814,37.5,34.2,40.8,
+ASQ-PHI,"Recall by group, right group",Names,354,814,43.5,40.1,46.9,
+ASQ-PHI,Leak recall by group,Phone and fax,47,47,100.0,92.4,100.0,
+ASQ-PHI,"Recall by group, right group",Phone and fax,47,47,100.0,92.4,100.0,
+ASQ-PHI,Leak recall by group,Places and employers,143,828,17.3,14.8,20.0,
+ASQ-PHI,"Recall by group, right group",Places and employers,49,828,5.9,4.5,7.7,
+ASQ-PHI,Leak recall by type,ADDRESS,143,828,17.3,14.8,20.0,
+ASQ-PHI,"Recall by type, right group",ADDRESS,49,828,5.9,4.5,7.7,
+ASQ-PHI,Leak recall by type,DATE,774,806,96.0,94.4,97.2,
+ASQ-PHI,"Recall by type, right group",DATE,784,806,97.3,95.9,98.2,
+ASQ-PHI,Leak recall by type,EMAIL,30,31,96.8,83.8,99.4,
+ASQ-PHI,"Recall by type, right group",EMAIL,30,31,96.8,83.8,99.4,
+ASQ-PHI,Leak recall by type,FAX,2,2,,,,too few to estimate
+ASQ-PHI,"Recall by type, right group",FAX,2,2,,,,too few to estimate
+ASQ-PHI,Leak recall by type,ID,91,110,82.7,74.6,88.7,
+ASQ-PHI,"Recall by type, right group",ID,91,110,82.7,74.6,88.7,
+ASQ-PHI,Leak recall by type,IP,0,1,,,,too few to estimate
+ASQ-PHI,"Recall by type, right group",IP,0,1,,,,too few to estimate
+ASQ-PHI,Leak recall by type,MRN,104,305,34.1,29.0,39.6,
+ASQ-PHI,"Recall by type, right group",MRN,123,305,40.3,35.0,45.9,
+ASQ-PHI,Leak recall by type,NAME,305,814,37.5,34.2,40.8,
+ASQ-PHI,"Recall by type, right group",NAME,354,814,43.5,40.1,46.9,
+ASQ-PHI,Leak recall by type,PHONE,45,45,100.0,92.1,100.0,
+ASQ-PHI,"Recall by type, right group",PHONE,45,45,100.0,92.1,100.0,
+ASQ-PHI,Leak recall by type,SSN,33,33,100.0,89.6,100.0,
+ASQ-PHI,"Recall by type, right group",SSN,33,33,100.0,89.6,100.0,
+ASQ-PHI,Leak recall by text shape,plain,1527,2975,51.3,49.5,53.1,
+ASQ-PHI,Leak recall by name owner,other,305,814,37.5,34.2,40.8,
+ASQ-PHI,Precision by ScrubX label,ADDRESS,40,40,100.0,91.2,100.0,
+ASQ-PHI,Precision by ScrubX label,AGE,0,870,0.0,0.0,0.4,
+ASQ-PHI,Precision by ScrubX label,DATE,784,785,99.9,99.3,100.0,
+ASQ-PHI,Precision by ScrubX label,EMAIL,30,30,100.0,88.6,100.0,
+ASQ-PHI,Precision by ScrubX label,ID,108,108,100.0,96.6,100.0,
+ASQ-PHI,Precision by ScrubX label,LOCATION,12,12,,,,too few to estimate
+ASQ-PHI,Precision by ScrubX label,MRN,74,74,100.0,95.1,100.0,
+ASQ-PHI,Precision by ScrubX label,PERSON,522,565,92.4,89.9,94.3,
+ASQ-PHI,Precision by ScrubX label,PHONE,47,47,100.0,92.4,100.0,
+ASQ-PHI,Precision by ScrubX label,SSN,65,65,100.0,94.4,100.0,
+ASQ-PHI,Precision by ScrubX label,ZIP,3,3,,,,too few to estimate
+NotInject,Attacks,Allowed (got through),0,0,,,,too few to estimate
+NotInject,Attacks,Blocked,0,0,,,,too few to estimate
+NotInject,Attacks,Blocked or flagged,0,0,,,,too few to estimate
+NotInject,Harmless messages,Blocked,0,339,0.0,0.0,1.1,
+NotInject,Harmless messages,Flagged,12,339,3.5,2.0,6.1,
+NotInject,Record text,Attacks removed,0,0,,,,too few to estimate
+NotInject,Record text,Benign text removed,0,0,,,,too few to estimate
+NotInject,Outcome by category,benign: Common Queries: block,0,126,0.0,0.0,3.0,
+NotInject,Outcome by category,benign: Common Queries: flag,1,126,0.8,0.1,4.4,
+NotInject,Outcome by category,benign: Common Queries: allow,125,126,99.2,95.6,99.9,
+NotInject,Outcome by category,benign: Multilingual: block,0,84,0.0,0.0,4.4,
+NotInject,Outcome by category,benign: Multilingual: flag,0,84,0.0,0.0,4.4,
+NotInject,Outcome by category,benign: Multilingual: allow,84,84,100.0,95.6,100.0,
+NotInject,Outcome by category,benign: Technique Queries: block,0,87,0.0,0.0,4.2,
+NotInject,Outcome by category,benign: Technique Queries: flag,5,87,5.7,2.5,12.8,
+NotInject,Outcome by category,benign: Technique Queries: allow,82,87,94.3,87.2,97.5,
+NotInject,Outcome by category,benign: Virtual Creation: block,0,42,0.0,0.0,8.4,
+NotInject,Outcome by category,benign: Virtual Creation: flag,6,42,14.3,6.7,27.8,
+NotInject,Outcome by category,benign: Virtual Creation: allow,36,42,85.7,72.2,93.3,
+NotInject,Outcome by language,benign: en: block,0,255,0.0,0.0,1.5,
+NotInject,Outcome by language,benign: en: flag,12,255,4.7,2.7,8.0,
+NotInject,Outcome by language,benign: en: allow,243,255,95.3,92.0,97.3,
+NotInject,Outcome by language,benign: mixed: block,0,84,0.0,0.0,4.4,
+NotInject,Outcome by language,benign: mixed: flag,0,84,0.0,0.0,4.4,
+NotInject,Outcome by language,benign: mixed: allow,84,84,100.0,95.6,100.0,

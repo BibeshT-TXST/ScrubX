@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 705" width="860" height="705" role="img" aria-labelledby="phi-by-group-title phi-by-group-desc" font-family="system-ui,-apple-system,'Segoe UI',sans-serif">
+<title id="phi-by-group-title">ScrubX missed 51% of identifiers on our test set and 49% on ASQ-PHI</title>
+<desc id="phi-by-group-desc">All identifiers, our set: 169 of 331 missed. All identifiers, external set: 1448 of 2975 missed. Places and employers, our set: 37 of 54 missed. Places and employers, external set: 685 of 828 missed. Dates, our set: 25 of 46 missed. Dates, external set: 32 of 806 missed. IDs, our set: 19 of 36 missed. IDs, external set: 220 of 448 missed. Phone and fax, our set: 10 of 20 missed. Phone and fax, external set: 0 of 47 missed. Names, our set: 64 of 150 missed. Names, external set: 509 of 814 missed. Ages, our set: 11 of 12 missed. Ages, external set: 0 of 0 missed. Email, URL and IP, our set: 3 of 13 missed. Email, URL and IP, external set: 2 of 32 missed.</desc>
+<rect width="860" height="705" rx="8" fill="#1a1a19"/>
+<text x="24" y="38" font-size="20" fill="#f0efec" font-weight="600">ScrubX missed 51% of identifiers on our test set and 49% on ASQ-PHI</text>
+<text x="24" y="62" font-size="14" fill="#c3c2b7">A miss means at least one letter or digit of the identifier was left unmasked.</text>
+<circle cx="31" cy="86" r="5" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<text x="44" y="90" font-size="13" fill="#c3c2b7">Our set</text>
+<path d="M122 79.5L128.5 86L122 92.5L115.5 86Z" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="135" y="90" font-size="13" fill="#c3c2b7">ASQ-PHI</text>
+<circle cx="213" cy="86" r="5" fill="#1a1a19" stroke="#3987e5" stroke-width="2"/>
+<text x="226" y="90" font-size="13" fill="#c3c2b7">Hollow: 20 to 49 items, so read it loosely</text>
+<text x="214" y="114" font-size="12" fill="#a3a29a">Share of identifiers missed, with 95% interval</text>
+<text x="836" y="114" font-size="12" fill="#a3a29a" text-anchor="end">missed / total</text>
+<line x1="214" x2="214" y1="124" y2="568" stroke="#383835"/><text x="214" y="584" font-size="12" fill="#a3a29a" text-anchor="middle" style="font-variant-numeric:tabular-nums">0%</text>
+<line x1="335.5" x2="335.5" y1="124" y2="568" stroke="#2c2c2a"/><text x="335.5" y="584" font-size="12" fill="#a3a29a" text-anchor="middle" style="font-variant-numeric:tabular-nums">25%</text>
+<line x1="457" x2="457" y1="124" y2="568" stroke="#2c2c2a"/><text x="457" y="584" font-size="12" fill="#a3a29a" text-anchor="middle" style="font-variant-numeric:tabular-nums">50%</text>
+<line x1="578.5" x2="578.5" y1="124" y2="568" stroke="#2c2c2a"/><text x="578.5" y="584" font-size="12" fill="#a3a29a" text-anchor="middle" style="font-variant-numeric:tabular-nums">75%</text>
+<line x1="700" x2="700" y1="124" y2="568" stroke="#2c2c2a"/><text x="700" y="584" font-size="12" fill="#a3a29a" text-anchor="middle" style="font-variant-numeric:tabular-nums">100%</text>
+<text x="24" y="155" font-size="14" fill="#f0efec" font-weight="600">All identifiers</text>
+<line x1="436.1" x2="488.1" y1="139" y2="139" stroke="#3987e5" stroke-width="2" stroke-linecap="round"/>
+<circle cx="462.1" cy="139" r="5" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<text x="836" y="143" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">169 / 331</text>
+<line x1="441.8" x2="459.3" y1="161" y2="161" stroke="#d95926" stroke-width="2" stroke-linecap="round"/>
+<path d="M450.5 154.5L457 161L450.5 167.5L444 161Z" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="836" y="165" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">1448 / 2975</text>
+<line x1="24" x2="836" y1="178" y2="178" stroke="#2c2c2a"/>
+<text x="24" y="211" font-size="14" fill="#f0efec">Places and employers</text>
+<line x1="482.5" x2="599.5" y1="195" y2="195" stroke="#3987e5" stroke-width="2" stroke-linecap="round"/>
+<circle cx="547" cy="195" r="5" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<text x="836" y="199" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">37 / 54</text>
+<line x1="602.8" x2="627.8" y1="217" y2="217" stroke="#d95926" stroke-width="2" stroke-linecap="round"/>
+<path d="M616.1 210.5L622.6 217L616.1 223.5L609.6 217Z" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="836" y="221" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">685 / 828</text>
+<text x="24" y="267" font-size="14" fill="#f0efec">Dates</text>
+<line x1="409.3" x2="543.7" y1="251" y2="251" stroke="#3987e5" stroke-width="2" stroke-linecap="round"/>
+<circle cx="478.1" cy="251" r="5" fill="#1a1a19" stroke="#3987e5" stroke-width="2"/>
+<text x="836" y="255" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">25 / 46</text>
+<line x1="227.7" x2="241.0" y1="273" y2="273" stroke="#d95926" stroke-width="2" stroke-linecap="round"/>
+<path d="M233.3 266.5L239.8 273L233.3 279.5L226.8 273Z" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="836" y="277" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">32 / 806</text>
+<text x="24" y="323" font-size="14" fill="#f0efec">IDs</text>
+<line x1="393.8" x2="544.5" y1="307" y2="307" stroke="#3987e5" stroke-width="2" stroke-linecap="round"/>
+<circle cx="470.5" cy="307" r="5" fill="#1a1a19" stroke="#3987e5" stroke-width="2"/>
+<text x="836" y="311" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">19 / 36</text>
+<line x1="430.3" x2="475.1" y1="329" y2="329" stroke="#d95926" stroke-width="2" stroke-linecap="round"/>
+<path d="M452.7 322.5L459.2 329L452.7 335.5L446.2 329Z" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="836" y="333" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">220 / 448</text>
+<text x="24" y="379" font-size="14" fill="#f0efec">Phone and fax</text>
+<line x1="359.5" x2="554.5" y1="363" y2="363" stroke="#3987e5" stroke-width="2" stroke-linecap="round"/>
+<circle cx="457" cy="363" r="5" fill="#1a1a19" stroke="#3987e5" stroke-width="2"/>
+<text x="836" y="367" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">10 / 20</text>
+<line x1="214.0" x2="250.7" y1="385" y2="385" stroke="#d95926" stroke-width="2" stroke-linecap="round"/>
+<path d="M214 378.5L220.5 385L214 391.5L207.5 385Z" fill="#1a1a19" stroke="#d95926" stroke-width="2"/>
+<text x="836" y="389" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">0 / 47</text>
+<text x="24" y="435" font-size="14" fill="#f0efec">Names</text>
+<line x1="384.3" x2="460.2" y1="419" y2="419" stroke="#3987e5" stroke-width="2" stroke-linecap="round"/>
+<circle cx="421.4" cy="419" r="5" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<text x="836" y="423" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">64 / 150</text>
+<line x1="501.5" x2="533.7" y1="441" y2="441" stroke="#d95926" stroke-width="2" stroke-linecap="round"/>
+<path d="M517.9 434.5L524.4 441L517.9 447.5L511.4 441Z" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="836" y="445" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">509 / 814</text>
+<text x="24" y="491" font-size="14" fill="#f0efec">Ages</text>
+<text x="222" y="479" font-size="12" fill="#a3a29a">Our set: too few items to plot</text>
+<text x="836" y="479" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">11 / 12</text>
+<text x="222" y="501" font-size="12" fill="#a3a29a">ASQ-PHI: not labeled in this set</text>
+<text x="836" y="501" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">–</text>
+<text x="24" y="547" font-size="14" fill="#f0efec">Email, URL and IP</text>
+<text x="222" y="535" font-size="12" fill="#a3a29a">Our set: too few items to plot</text>
+<text x="836" y="535" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">3 / 13</text>
+<line x1="222.4" x2="311.9" y1="553" y2="553" stroke="#d95926" stroke-width="2" stroke-linecap="round"/>
+<path d="M244.4 546.5L250.9 553L244.4 559.5L237.9 553Z" fill="#1a1a19" stroke="#d95926" stroke-width="2"/>
+<text x="836" y="557" font-size="13" fill="#c3c2b7" text-anchor="end" style="font-variant-numeric:tabular-nums">2 / 32</text>
+<text x="24" y="612" font-size="12" fill="#c3c2b7">Counts Safe Harbor identifiers only, including month-only dates, which ScrubX leaves visible on purpose. ASQ-PHI counts hospitals</text><text x="24" y="629" font-size="12" fill="#c3c2b7">as places, which ScrubX doesn't try to mask, and has no patient record, so its run tests identifiers ScrubX wasn't told about.</text><text x="24" y="646" font-size="12" fill="#c3c2b7">Our set written by Bibesh with Claude 4.8 (incognito chat, no repo access). Detectors unchanged since the set was frozen. Commit</text><text x="24" y="663" font-size="12" fill="#c3c2b7">e6eb04d. Intervals are 95% Wilson and treat items as independent, which is optimistic.</text><text x="24" y="680" font-size="12" fill="#c3c2b7">All data is synthetic, and these results don't predict performance on real clinical text. Not a HIPAA compliance claim.</text>
+</svg>

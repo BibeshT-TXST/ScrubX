@@ -115,7 +115,7 @@ How we checked it:
 - **Brand and company names shaped like a name.** `Today Lantus Solostar was refilled.` and `Express Scripts refilled her metformin.` are now tokenized at 0.45. Mid-sentence they already were ([13](13-find-identifiers-the-detector-was-not-told-about.md)). Both are below the output check's bar, so answers only change in strict mode.
 - **An opening word can be masked with the name.** In `Yesterday Siobhán O'Connell flagged an interaction.`, the note verb confirms there is a name but not where it starts, so `Yesterday` is masked too. This errs toward masking, as the action cue already does.
 - **Not changed (outside #12):**
-  - [tests/leakage.ts](../../tests/leakage.ts) is not picked up by Vitest, which only runs `*.test.ts`. Run under a test name, it passes before and after this change (44 pass, 3 expected failures).
+  - [tests/leakage.ts](../../tests/leakage.test.ts) was not picked up by Vitest, which only runs `*.test.ts` ([18](18-an-honest-evaluation-set.md) renamed it). Run under a test name, it passes before and after this change (44 pass, 3 expected failures).
 
 ## Sources
 

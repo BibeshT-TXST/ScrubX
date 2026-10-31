@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run lint && npm test",
-    "db:seed": "node --env-file-if-exists=.env.local scripts/seed-supabase.mjs"
+    "db:seed": "node --env-file-if-exists=.env.local scripts/seed-supabase.mjs",
+    "eval": "jiti eval/run.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -35,6 +36,7 @@
     "@vitest/coverage-v8": "^5.0.4",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
+    "jiti": "2.7.0",
     "shadcn": "^4.21.4",
     "tailwindcss": "^4",
     "typescript": "^5",
