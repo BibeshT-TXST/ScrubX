@@ -32,6 +32,8 @@ npm run eval -- --freeze --author "..."   # hash our rows
 npm run eval -- --freeze --reason "..."   # re-hash after a change, which the report then prints
 npm run eval -- --write       # also write results.json, RESULTS.md, the charts and the CSV
 npm run eval -- --charts      # redraw the charts and the CSV from results.json, scoring nothing
+npm run eval -- --check       # the CI gate: fail if anything differs from what is committed
+npm run eval -- --write --accept "why"   # record a regression on purpose
 node scripts/eval-fetch-external.mjs      # re-download the public sets (needs network)
 ```
 
@@ -40,6 +42,24 @@ node scripts/eval-fetch-external.mjs      # re-download the public sets (needs n
 - `RESULTS.md` says on its own when `src/core` has changed since the freeze. From then on these rows have been seen, so the report calls the scores development scores, and they say nothing about unseen text.
 - Showing a real gain after tuning needs rows nobody has tuned on: write a small new set the same way.
 - A change to a label after scoring needs `--reason`, and the reason is printed in the report. Fix labels by rule across all rows, not only on the failures, because fixing failures alone can only raise a score.
+
+## The gate
+
+`npm run eval -- --check` runs in [CI](../.github/workflows/ci.yml) and compares every item to the committed `results.json`. There is no margin: the same rows and the same code give the same result, so any difference is a real change.
+
+| What happened | CI |
+|---|---|
+| A missed value, a false label on any row, or a third party labeled as the patient is new | Fails, and lists each item |
+| An attack weakened (blocked to flagged to allowed), or a harmless message got stricter | Fails, and lists each item |
+| An attack in record text reached the model, or harmless record text was removed | Fails, and lists each item |
+| Something got better, or anything else in the results changed | Fails until you run `--write` and commit, so the results stay true |
+| `src/core` changed but no score did | Fails until you run `--write`, because the "untuned" label would otherwise be wrong |
+| `RESULTS.md`, a chart or the CSV doesn't match `results.json` | Fails. They are generated, so don't edit them |
+| The rows don't match the lock | Fails |
+
+`--write` refuses a regression too. To accept one, pass `--accept "why"`, and the items and the reason are printed at the top of `RESULTS.md` from then on.
+
+A green gate means no regression on these items. It doesn't mean ScrubX is good: the first baseline recorded today's failures as expected, so they pass the gate until someone fixes them.
 
 ## External sets
 

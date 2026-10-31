@@ -47,6 +47,13 @@ They never reach block/flag/allow, so a block rate would always read 0%. An atta
 ### 8. External sets, unchanged, as the correction
 [ASQ-PHI](https://pmc.ncbi.nlm.nih.gov/articles/PMC12926592/) and [NotInject](https://arxiv.org/abs/2410.22770) are vendored at pinned revisions and reported separately, never pooled. Both are MIT licensed; see [eval/README.md](../../eval/README.md). Rules don't get tuned against them before a first published score.
 
+### 9. The gate's margin is zero, per item
+Issue #14 asked CI to fail if recall drops by more than a set margin. A margin allows for sampling noise, and this run has none: the same rows and the same code give the same result, so any difference is a real change. A margin of 1 point on 300 mentions would let 3 new leaks through. A significance test is worse: exact McNemar with 5 new misses and no fixes gives p = 0.0625, which would pass all 5.
+
+So `--check` compares each item to the committed `results.json`. A fix can't pay for a new leak, because each item is compared on its own. New false labels fail too, or recall could be bought by masking everything. An improvement also fails until it's committed, so the published numbers can't go stale.
+
+GCC's test comparison and web-platform-tests gate per test in the same way. A regression can still land on purpose with `--write --accept "why"`, and the report then prints it above the numbers.
+
 ## The example from this project
 
 The first run of ASQ-PHI on `9f12eaf`, with no detector change, gave leak recall of 50.6%. Sampling the misses found a scorer problem: its gold keeps titles and field words, so `Dr. Robert Miles` counted `Dr` as a leak. Stripping them across every row gave **1527/2975, 51.3% (95% CI 49.5–53.1)**.
@@ -67,6 +74,7 @@ The set also has no patient record, so ScrubX runs without its record lookup. A 
 ## Where it lives
 
 - [eval/run.ts](../../eval/run.ts): the CLI, the freeze and the guards
+- [eval/gate.ts](../../eval/gate.ts) and [.github/workflows/ci.yml](../../.github/workflows/ci.yml): the regression gate
 - [eval/score.ts](../../eval/score.ts): scoring as pure functions
 - [eval/harness.ts](../../eval/harness.ts): runs each row through the real `Pipeline` with a provider that only captures the prompt
 - [eval/report.ts](../../eval/report.ts): the report and its caveats
@@ -80,7 +88,8 @@ The set also has no patient record, so ScrubX runs without its record lookup. A 
 - **Rows get used up.** Once we tune on these rows they're seen, and a later score on them says nothing about unseen text. Showing a real gain takes a new set written the same way.
 - **The intervals are wide.** With about 40 items in a group, even 40 of 40 only supports "at least 91%", and the intervals are optimistic because rows share an author.
 - **The guards don't stop someone determined.** They make the honest order the easy one, and the history shows what happened.
-- **No CI yet.** The gate that fails on a regression comes right after the first baseline, because it compares against that baseline. Until then #14 stays open.
+- **A green gate says little about quality.** The first baseline recorded today's failures as expected, so they pass until someone fixes them. With about 50 items in a type, a change that breaks 2% of that type's real patterns still goes unseen about a third of the time.
+- **It's strict about harmless changes.** A refactor of `src/core` that moves no score still needs `--write`, because the untuned label has to stay true.
 - **Message path only.** PHI in record text isn't scored here, though `Retrieval` handles it.
 - **`jiti` is a new dev dependency.** It was already in the lockfile through other tools. Plain Node 22 can't run `src/core`, and running the CLI inside Vitest would make writing results a side effect of a test.
 
