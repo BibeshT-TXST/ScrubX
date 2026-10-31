@@ -2,7 +2,7 @@
 
 **Ask an AI about a patient without telling it who the patient is.**
 
-ScrubX sits between a clinician and a large language model. It strips out everything that identifies the patient, blocks prompt-injection attacks, and checks the answer before it comes back. The model still helps. It just never learns who it's helping with.
+ScrubX sits between a clinician and a large language model. It masks what identifies the patient, blocks the prompt-injection attacks it recognizes, and checks the answer before it comes back. The goal is a model that helps without learning who it's helping with. [The test results](#how-well-it-works) show how far it still has to go.
 
 **[Try the live demo →](https://scrub-x-ivory.vercel.app)** No sign-up. Every patient is made up.
 
@@ -53,11 +53,47 @@ Every request goes through seven steps:
 
 ## What it promises
 
-- **The model never sees an identifier.** A test runs every demo patient and every attack, and fails if a real value shows up in a prompt.
+- **Identifiers it detects never reach the model.** A test runs every demo patient and every attack, and fails if a value from the patient's record shows up in a prompt. Detection itself still misses a lot, especially identifiers the record doesn't hold. See [the results](#how-well-it-works).
 - **Audit lines hold counts, never values.**
 - **Nothing stays on the server.** The vault dies with the request.
 - **ScrubX only reads the database.** It never writes.
 - **An outage gets an honest message, not a crash.**
+
+## How well it works
+
+Not well enough yet: **today ScrubX misses about half of the identifiers in these tests and most of the attacks.** I measured the detectors before tuning them against these rows, and this is that first score.
+
+| Test | Result | 95% interval |
+|---|---|---|
+| Identifiers fully masked, our test set | 162 of 331 (48.9%) | 43.6–54.3% |
+| Identifiers fully masked, [ASQ-PHI](https://github.com/JamesWeatherhead/asq-phi) (public set) | 1,527 of 2,975 (51.3%) | 49.5–53.1% |
+| Attack messages that got through | 51 of 70 (72.9%) | 61.5–81.9% |
+| Attacks hidden in record text that were removed | 8 of 20 (40.0%) | 21.9–61.3% |
+| Harmless clinical messages blocked | 1 of 75 (1.3%) | 0.2–7.2% |
+| Harmless [NotInject](https://huggingface.co/datasets/leolee99/NotInject) messages blocked (public set, not clinical) | 0 of 339 (0.0%), plus 12 flagged | 0–1.1% |
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/eval/phi-by-group-dark.svg">
+  <img alt="Share of identifiers missed, by type, on our test set and on ASQ-PHI. Overall, 51% missed on our set and 49% on ASQ-PHI. Full numbers are in eval/RESULTS.md." src="./docs/eval/phi-by-group-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/eval/injection-outcomes-dark.svg">
+  <img alt="Attack and harmless messages by outcome. 51 of 70 attack messages were allowed, and 1 of 75 harmless clinical messages was blocked. Full numbers are in eval/RESULTS.md." src="./docs/eval/injection-outcomes-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/eval/phi-by-shape-dark.svg">
+  <img alt="Share of identifiers missed by text style on our test set: 84% in all lowercase, 71% in all caps, 48% in normal text and 12% in pasted text with markup. Full numbers are in eval/RESULTS.md." src="./docs/eval/phi-by-shape-light.svg">
+</picture>
+
+What these numbers can't tell you:
+
+- **All the data is synthetic.** The results describe these test sets and don't predict performance on real clinical text. Don't use ScrubX with real patient data.
+- **It's a fixed test, not a security claim.** An attacker who sees the rules and adapts will do better than any attack here.
+- **It's not a HIPAA compliance claim.** Masking these identifiers doesn't establish de-identification.
+
+The rows and their hash were committed before the results, and every number reruns offline with `npm run eval`. The misses are listed row by row in [eval/RESULTS.md](eval/RESULTS.md), the numbers are in [a spreadsheet](docs/eval/eval-results.csv), and [decision 18](docs/decisions/18-an-honest-evaluation-set.md) covers the method. Tuning will use these rows up, so measuring real improvement will take a new set written the same way.
 
 ## How it fits into SightX
 

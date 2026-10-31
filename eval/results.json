@@ -1,13 +1,15 @@
 {
-  "commit": "bde7bb2",
+  "commit": "1dabf3e",
   "own": {
-    "author": "Bibesh",
+    "author": "Bibesh with Claude 4.8 (incognito chat, no repo access)",
     "untuned": true,
-    "changes": [],
+    "changes": [
+      "Corrected the author. The rows did not change."
+    ],
     "phi": {
       "name": "PHI",
       "sha256": "4cf44577fe1895a200b925db95ba106d7dbfd530c7b2a3776a8195efd9ac237d",
-      "provenance": "Written by Bibesh, from the written plan in eval/AUTHORING_PROMPT.md.",
+      "provenance": "Written by Bibesh with Claude 4.8 (incognito chat, no repo access), from the written plan in eval/AUTHORING_PROMPT.md.",
       "summary": {
         "rows": 260,
         "phiFreeRows": 30,
@@ -1915,7 +1917,7 @@
     "injection": {
       "name": "Prompt injection",
       "sha256": "e9e05c3b992423582a8147011f556893953a2cc422126dfbfc03b3fcf5727c3a",
-      "provenance": "Written by Bibesh, from the written plan in eval/AUTHORING_PROMPT.md.",
+      "provenance": "Written by Bibesh with Claude 4.8 (incognito chat, no repo access), from the written plan in eval/AUTHORING_PROMPT.md.",
       "summary": {
         "attacks": {
           "block": 14,

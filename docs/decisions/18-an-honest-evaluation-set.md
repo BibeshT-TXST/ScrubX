@@ -20,10 +20,10 @@ A rule could help or just move the misses around, and nothing would show which. 
 ### 1. The first score can't be recovered, so the code protects it
 The first run on untouched detectors is the only score no tuning can have influenced. `--freeze` records the rows' hashes and the git tree of `src/core`. Scoring refuses to run until the rows and hashes are committed, so `git log` shows the rows came first. After that the report compares trees and labels itself: "untuned scores" or "development scores".
 
-### 2. Someone else writes the rows
-The rows come from a chat with no access to this repo, working from [AUTHORING_PROMPT.md](../../eval/AUTHORING_PROMPT.md). The author reviews labels against the written rules, doesn't drop rows for being hard, and logs every correction.
+### 2. The rows are written away from the code
+The rows were written by Bibesh with Claude 4.8, in an incognito chat with no access to this repo, working from [AUTHORING_PROMPT.md](../../eval/AUTHORING_PROMPT.md). Labels are reviewed against the written rules, rows aren't dropped for being hard, and every correction is logged.
 
-A fresh model isn't a truly independent author, and no independent human checked the labels. The report states both.
+This set isn't fully independent. Bibesh also wrote the detectors, a fresh model isn't a truly independent author, and no independent human checked the labels. The report names the authors and says no human agreement was measured.
 
 ### 3. Gold comes from the regulation, not the detector
 - **Month-year.** [13](13-find-identifiers-the-detector-was-not-told-about.md) leaves `March 2026` visible on purpose, and Safe Harbor covers it. These mentions are gold, marked `monthYear`. The headline counts them, and a second figure leaves them out, so the cost of that choice is visible. Whether 13 should change is a separate decision.
@@ -70,6 +70,7 @@ The set also has no patient record, so ScrubX runs without its record lookup. A 
 - [eval/score.ts](../../eval/score.ts): scoring as pure functions
 - [eval/harness.ts](../../eval/harness.ts): runs each row through the real `Pipeline` with a provider that only captures the prompt
 - [eval/report.ts](../../eval/report.ts): the report and its caveats
+- [eval/charts.ts](../../eval/charts.ts): the charts and CSV in [docs/eval/](../eval/), generated from `results.json`, with the same caveats drawn into each image
 - [eval/AUTHORING_PROMPT.md](../../eval/AUTHORING_PROMPT.md): the labeling rules and the plan for the rows
 - [scripts/eval-fetch-external.mjs](../../scripts/eval-fetch-external.mjs): downloads and converts the external sets
 - [tests/eval/](../../tests/eval/): includes a check that the scorer reproduces the 44 of 47 planted cases
