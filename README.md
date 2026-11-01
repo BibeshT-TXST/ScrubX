@@ -1,6 +1,4 @@
-# ScrubX
-
-**The goal: ask an AI about a patient without telling it who the patient is.**
+# ScrubX: Ask an AI about a patient without telling it who the patient is
 
 ScrubX started with a question: how does a clinician ask an AI about a patient without giving the patient away?
 
