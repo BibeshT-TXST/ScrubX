@@ -120,4 +120,9 @@ In the code, `src/core` holds the pipeline, `tests/` the checks, and `data/patie
 - **[Sources](docs/references.md)                         :** the research behind the detectors and their tests.
 ---
 
+### License
+MIT
+
+---
+
 **Built with care to serve people**
